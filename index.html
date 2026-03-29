@@ -263,6 +263,15 @@ body::before {
 .meal-plan h3, .recipe-card h3 { font-family: var(--font-head); font-size: 14px; margin-bottom: 6px; }
 .meal-items { margin-top: 8px; font-size: 12px; color: var(--text2); line-height: 1.65; }
 .meal-items div { display: flex; justify-content: space-between; gap: 10px; }
+.meal-head { display: flex; align-items: center; gap: 12px; }
+.meal-check { flex-shrink: 0; }
+.graph-wrap { margin-top: 8px; }
+.graph-svg { width: 100%; height: 220px; display: block; }
+.graph-axis { stroke: rgba(192,163,255,0.16); stroke-width: 1; }
+.graph-line { fill: none; stroke: url(#progressGradient); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.graph-dot { fill: var(--accent2); }
+.graph-label { fill: var(--text3); font-size: 10px; font-family: var(--font-mono); }
+.graph-empty { padding: 24px 0; text-align: center; color: var(--text3); font-size: 12px; }
 .fade-in { animation: fadeIn 0.2s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @media (max-width: 640px) {
@@ -311,11 +320,11 @@ body::before {
   <div id="sec-training" class="section fade-in">
     <div class="sec-header">
       <h2>Training</h2>
-      <p>4x Kraft plus 3x20 Min Zone 2 auf dem Fahrrad</p>
+      <p>CSV anhängen, automatisch aktualisieren und Progress verfolgen.</p>
     </div>
     <div class="card">
       <div class="card-label">Hevy Import</div>
-      <div class="subtle" style="margin-bottom:10px">CSV oder JSON auswählen. Wenn das Exportformat abweicht, bleibt der Tab trotzdem voll nutzbar.</div>
+      <div class="subtle" style="margin-bottom:10px">Nach dem Training einfach die neue Hevy-CSV auswählen. Übungen, Sätze, Wiederholungen und der Fortschrittsgraph werden damit direkt aktualisiert.</div>
       <div class="btn-group">
         <label class="btn btn-accent" for="hevy-file">Hevy Datei wählen</label>
         <input id="hevy-file" type="file" accept=".csv,.json" style="display:none" onchange="importHevyFile(event)">
@@ -323,29 +332,15 @@ body::before {
       <div id="hevy-status" class="subtle">Noch kein Hevy-Import geladen.</div>
     </div>
     <div class="card"><div class="card-label">Cardio</div><div class="subtle" style="margin-bottom:10px">Ziel: 3 Sessions pro Woche, je 20 Minuten Zone 2 auf dem Fahrrad.</div><div id="cardio-list"></div></div>
-    <div class="card">
-      <div class="card-label">Training loggen</div>
-      <div class="input-row" style="flex-direction:column; align-items:stretch; gap:8px">
-        <select class="input-field" id="train-day">
-          <option>Push A (Montag)</option>
-          <option>Pull A (Dienstag)</option>
-          <option>Rest Day + Cardio (Mittwoch)</option>
-          <option>Push B (Donnerstag)</option>
-          <option>Pull B (Freitag)</option>
-          <option>Zone 2 Bike (Samstag)</option>
-          <option>Off / Mobility (Sonntag)</option>
-        </select>
-        <input type="text" class="input-field" id="train-note" placeholder="Notiz: Leistung, Energie, Knie, Bike-Puls ...">
-      </div>
-      <button class="btn btn-accent" style="margin-top:10px; width:100%" onclick="saveTraining()">Training speichern</button>
-    </div>
     <div class="split-two">
       <div class="card"><div class="card-label" id="label-push-a">Push A</div><div id="ex-push-a"></div></div>
       <div class="card"><div class="card-label" id="label-pull-a">Pull A</div><div id="ex-pull-a"></div></div>
-      <div class="card"><div class="card-label" id="label-push-b">Push B</div><div id="ex-push-b"></div></div>
-      <div class="card"><div class="card-label" id="label-pull-b">Pull B</div><div id="ex-pull-b"></div></div>
     </div>
-    <div class="card"><div class="card-label">Training-Log</div><div id="training-log"></div></div>
+    <div class="card">
+      <div class="card-label">Progressiver Fortschritt</div>
+      <div class="subtle">Graph basiert auf den importierten Hevy-Sessions und zeigt den durchschnittlichen Trainingsload pro Einheit über die Zeit.</div>
+      <div id="progress-graph" class="graph-wrap"></div>
+    </div>
   </div>
 
   <div id="sec-nutrition" class="section fade-in">
@@ -395,13 +390,17 @@ body::before {
       <div id="daily-plan"></div>
     </div>
     <div class="card">
-      <div class="card-label">Makros manuell eintragen</div>
+      <div class="card-label">Planübersicht</div>
+      <div id="macro-progress" class="subtle" style="margin-top:2px"></div>
+      <div class="prog-wrap"><div class="prog-bar" id="macro-bar" style="width:0%"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Makros manuell ergänzen</div>
       <div class="input-row"><span class="input-lbl">Protein (g)</span><input type="number" class="input-field" id="prot-in" min="0" placeholder="0" style="max-width:120px"></div>
       <div class="input-row"><span class="input-lbl">Carbs (g)</span><input type="number" class="input-field" id="carb-in" min="0" placeholder="0" style="max-width:120px"></div>
       <div class="input-row"><span class="input-lbl">Fette (g)</span><input type="number" class="input-field" id="fat-in" min="0" placeholder="0" style="max-width:120px"></div>
       <button class="btn btn-accent" style="width:100%; margin-top:6px" onclick="saveMacros()">Eintragen</button>
-      <div id="macro-progress" class="subtle" style="margin-top:12px"></div>
-      <div class="prog-wrap"><div class="prog-bar" id="macro-bar" style="width:0%"></div></div>
+      <div class="subtle" style="margin-top:12px">Für Extras außerhalb des Tagesplans. Die Plan-Mahlzeiten selbst kannst du direkt oben abhaken.</div>
     </div>
   </div>
 
@@ -484,7 +483,7 @@ const EVENING = [
 ];
 const SUPP_IDS = ['ash', 'omega', 'vit', 'snack', 'nac', 'glutamin', 'mag', 'glycin'];
 
-const WORKOUT_SLOTS = ['push-a', 'pull-a', 'push-b', 'pull-b'];
+const WORKOUT_SLOTS = ['push-a', 'pull-a'];
 
 const DEFAULT_EXERCISES = {
   'push-a': [
@@ -502,18 +501,6 @@ const DEFAULT_EXERCISES = {
     { name: 'Latzug (Kabel)', sets: '2x7 (7/5)', kg: '85kg', note: 'Aus Hevy CSV übernommen' },
     { name: 'Rudern sitzend (Maschine)', sets: '2x8 (8/5)', kg: '100kg', note: 'Aus Hevy CSV übernommen' },
     { name: 'Hammer Curl (Kabel)', sets: '2x5', kg: '45kg', note: 'Aus Hevy CSV übernommen' }
-  ],
-  'push-b': [
-    { name: 'Flachbank (KH)', sets: '3x8', kg: '22kg', note: 'volle ROM' },
-    { name: 'Kabelfly', sets: '3x10', kg: '15kg', note: 'Squeeze oben' },
-    { name: 'Schulterdrücken', sets: '3x8', kg: '20kg', note: 'kontrolliert' },
-    { name: 'Face Pulls', sets: '3x12', kg: '25kg', note: 'hintere Schulter' }
-  ],
-  'pull-b': [
-    { name: 'Latzug eng', sets: '3x8', kg: '85kg', note: 'zur Hüfte ziehen' },
-    { name: 'Seated Row', sets: '3x8', kg: '90kg', note: 'Brust raus' },
-    { name: 'Reverse Fly', sets: '3x12', kg: '10kg', note: 'hintere Schulter' },
-    { name: 'Core Crunch', sets: '3x12', kg: '70kg', note: 'ruhig' }
   ]
 };
 
@@ -708,9 +695,7 @@ function getExerciseTemplates() {
 function getWorkoutLabels() {
   return S.workoutLabels || {
     'push-a': 'PushFB',
-    'pull-a': 'Pull FB',
-    'push-b': 'Push B',
-    'pull-b': 'Pull B'
+    'pull-a': 'Pull FB'
   };
 }
 
@@ -805,6 +790,7 @@ function buildExercises() {
   Object.entries(templates).forEach(([key, exs]) => {
     const el = document.getElementById(`ex-${key}`);
     const labelEl = document.getElementById(`label-${key}`);
+    if (!el) return;
     if (labelEl) labelEl.textContent = labels[key] || key;
     el.innerHTML = exs.map(ex => `
       <div class="ex-row">
@@ -845,34 +831,6 @@ function toggleCardio(index) {
   buildCardioList();
 }
 
-function saveTraining() {
-  const day = document.getElementById('train-day').value;
-  const note = document.getElementById('train-note').value.trim();
-  S.trainingLog = S.trainingLog || [];
-  S.trainingLog.unshift({ date: todayKey, day, note, source: 'manual' });
-  S.trainingLog = S.trainingLog.slice(0, 40);
-  save();
-  renderTrainingLog();
-  document.getElementById('train-note').value = '';
-  showToast('Training gespeichert');
-}
-
-function renderTrainingLog() {
-  const el = document.getElementById('training-log');
-  const log = S.trainingLog || [];
-  if (!log.length) {
-    el.innerHTML = '<div class="subtle">Noch keine Einträge.</div>';
-    return;
-  }
-  el.innerHTML = log.map(e => `
-    <div class="log-item">
-      <div>
-        <div class="ex-name">${e.day}</div>
-        <div class="shop-note">${e.date}${e.note ? ` · ${e.note}` : ''}${e.source === 'hevy' ? ' · Hevy Import' : ''}</div>
-      </div>
-    </div>`).join('');
-}
-
 function setNutritionMode(mode) {
   S.nutritionMode = mode;
   save();
@@ -897,14 +855,32 @@ function renderNutritionMode() {
 function renderDailyPlan() {
   const plan = activePlan();
   document.getElementById('daily-plan-title').textContent = `${plan.title} · zufällig für ${todayKey} ausgewählt`;
-  document.getElementById('daily-plan').innerHTML = plan.meals.map(meal => `
+  const day = getDay(todayKey);
+  document.getElementById('daily-plan').innerHTML = plan.meals.map((meal, index) => {
+    const done = !!day[`planmeal_${currentMode()}_${index}`];
+    return `
     <div class="meal-plan">
-      <h3>${meal.title}</h3>
-      <div class="meal-meta">${meal.time} · ${meal.macros}</div>
+      <div class="meal-head">
+        <div class="check-box meal-check${done ? ' done' : ''}" onclick="togglePlanMeal(${index})"></div>
+        <div>
+          <h3 onclick="togglePlanMeal(${index})">${meal.title}</h3>
+          <div class="meal-meta">${meal.time} · ${meal.macros}</div>
+        </div>
+      </div>
       <div class="meal-items">
         ${meal.items.map(item => `<div><span>${item[0]}</span><span>${item[1]}</span></div>`).join('')}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+}
+
+function togglePlanMeal(index) {
+  const day = getDay(todayKey);
+  const key = `planmeal_${currentMode()}_${index}`;
+  day[key] = !day[key];
+  setDay(todayKey, day);
+  renderDailyPlan();
+  updateMacros();
 }
 
 function saveMacros() {
@@ -921,17 +897,35 @@ function saveMacros() {
 function updateMacros() {
   const day = getDay(todayKey);
   const totals = activePlan().totals;
-  const p = day.protein || 0;
-  const k = day.carbs || 0;
-  const f = day.fat || 0;
+  const planned = getConsumedPlanMacros();
+  const manualP = day.protein || 0;
+  const manualK = day.carbs || 0;
+  const manualF = day.fat || 0;
+  const p = planned.protein + manualP;
+  const k = planned.carbs + manualK;
+  const f = planned.fat + manualF;
   const kcal = Math.round(p * 4 + k * 4 + f * 9);
   document.getElementById('m-kcal').innerHTML = `${kcal}<span class="metric-unit"> / ${totals.kcal}</span>`;
   document.getElementById('m-prot').innerHTML = `${p}<span class="metric-unit"> / ${totals.protein}g</span>`;
   document.getElementById('m-carb').innerHTML = `${k}<span class="metric-unit"> / ${totals.carbs}g</span>`;
   document.getElementById('m-fat').innerHTML = `${f}<span class="metric-unit"> / ${totals.fat}g</span>`;
-  document.getElementById('macro-progress').textContent = `Heute eingetragen: ${p}P / ${k}C / ${f}F · Ziel aus Tagesplan: ${totals.protein}P / ${totals.carbs}C / ${totals.fat}F`;
+  document.getElementById('macro-progress').textContent = `Vom Plan konsumiert: ${planned.protein}P / ${planned.carbs}C / ${planned.fat}F · Manuell ergänzt: ${manualP}P / ${manualK}C / ${manualF}F · Gesamt: ${p}P / ${k}C / ${f}F`;
   const score = ((p / totals.protein) + (k / totals.carbs) + (f / totals.fat)) / 3;
   document.getElementById('macro-bar').style.width = `${Math.min(100, Math.round(score * 100))}%`;
+}
+
+function getConsumedPlanMacros() {
+  const day = getDay(todayKey);
+  const plan = activePlan();
+  return plan.meals.reduce((acc, meal, index) => {
+    const key = `planmeal_${currentMode()}_${index}`;
+    if (!day[key]) return acc;
+    const parsed = parseMacroString(meal.macros);
+    acc.protein += parsed.protein;
+    acc.carbs += parsed.carbs;
+    acc.fat += parsed.fat;
+    return acc;
+  }, { protein: 0, carbs: 0, fat: 0 });
 }
 
 function renderShoppingList() {
@@ -1023,6 +1017,7 @@ function importHevyFile(event) {
       S.trainingLog = S.trainingLog || [];
       parsed.logs.slice(0, 8).reverse().forEach(entry => S.trainingLog.unshift(entry));
       S.trainingLog = S.trainingLog.slice(0, 40);
+      S.hevySessions = mergeSessions(S.hevySessions, parsed.sessions || []);
       if (parsed.templates && Object.keys(parsed.templates).length) {
         S.exerciseTemplates = parsed.templates;
         S.workoutLabels = parsed.labels || getWorkoutLabels();
@@ -1030,7 +1025,7 @@ function importHevyFile(event) {
       }
       save();
       buildExercises();
-      renderTrainingLog();
+      renderProgressGraph();
       const importedWorkouts = parsed.logs.length;
       const updatedTemplates = parsed.templates ? Object.keys(parsed.templates).length : 0;
       document.getElementById('hevy-status').textContent = `${importedWorkouts} Einträge aus ${file.name} importiert. Trainingskarten ${updatedTemplates ? 'wurden aktualisiert' : 'blieben unverändert'}.`;
@@ -1051,7 +1046,7 @@ function parseHevyJson(text) {
     note: row.description || row.notes || '',
     source: 'hevy'
   }));
-  return { logs, templates: {}, labels: {} };
+  return { logs, templates: {}, labels: {}, sessions: [] };
 }
 
 function parseHevyCsv(text) {
@@ -1091,7 +1086,8 @@ function parseHevyCsv(text) {
   });
 
   const templates = buildTemplatesFromHevyGroups(grouped);
-  return { logs: dedupeLogs(logs), templates: templates.templates, labels: templates.labels };
+  const sessions = buildSessionHistory(grouped);
+  return { logs: dedupeLogs(logs), templates: templates.templates, labels: templates.labels, sessions };
 }
 
 function splitCsvLine(line) {
@@ -1114,6 +1110,15 @@ function splitCsvLine(line) {
 
 function findHeader(headers, options) {
   return headers.findIndex(h => options.includes(h));
+}
+
+function parseMacroString(value) {
+  const parts = String(value || '').match(/\d+/g) || [];
+  return {
+    protein: parseInt(parts[0] || '0', 10),
+    carbs: parseInt(parts[1] || '0', 10),
+    fat: parseInt(parts[2] || '0', 10)
+  };
 }
 
 function normalizeHeader(value) {
@@ -1169,6 +1174,40 @@ function buildTemplatesFromHevyGroups(grouped) {
   return { templates, labels };
 }
 
+function buildSessionHistory(grouped) {
+  return Object.values(grouped).map(workout => {
+    const exerciseNames = Object.keys(workout.exercises);
+    const topWeights = exerciseNames.map(name => {
+      const weights = workout.exercises[name].map(set => parseFloat(String(set.weight || '').replace(',', '.'))).filter(v => !Number.isNaN(v));
+      return weights.length ? Math.max(...weights) : 0;
+    }).filter(Boolean);
+    const avgTopWeight = topWeights.length ? topWeights.reduce((a, b) => a + b, 0) / topWeights.length : 0;
+    return {
+      date: normalizeSessionDate(workout.date),
+      workoutName: workout.workoutName,
+      avgTopWeight
+    };
+  }).filter(session => session.date);
+}
+
+function normalizeSessionDate(value) {
+  const raw = String(value || '').trim();
+  const match = raw.match(/(\d{1,2})\s+([A-Za-zÄÖÜäöüß]+)\s+(\d{4})/);
+  if (!match) return raw;
+  const monthsMap = { januar:'01', februar:'02', märz:'03', maerz:'03', april:'04', mai:'05', juni:'06', juli:'07', august:'08', september:'09', oktober:'10', november:'11', dezember:'12' };
+  const month = monthsMap[match[2].toLowerCase()] || '01';
+  const day = String(match[1]).padStart(2, '0');
+  return `${match[3]}-${month}-${day}`;
+}
+
+function mergeSessions(existing, incoming) {
+  const map = new Map();
+  [...(existing || []), ...(incoming || [])].forEach(session => {
+    map.set(`${session.date}__${session.workoutName}`, session);
+  });
+  return [...map.values()].sort((a, b) => String(a.date).localeCompare(String(b.date)));
+}
+
 function inferWorkoutSlot(name, currentTemplates) {
   const n = String(name || '').toLowerCase();
   if (n.includes('pushfb') && !currentTemplates['push-a']) return 'push-a';
@@ -1176,8 +1215,6 @@ function inferWorkoutSlot(name, currentTemplates) {
   if (n.includes('pull fb') && !currentTemplates['pull-a']) return 'pull-a';
   if (n.includes('push') && n.includes('a') && !currentTemplates['push-a']) return 'push-a';
   if (n.includes('pull') && n.includes('a') && !currentTemplates['pull-a']) return 'pull-a';
-  if (n.includes('push') && n.includes('b') && !currentTemplates['push-b']) return 'push-b';
-  if (n.includes('pull') && n.includes('b') && !currentTemplates['pull-b']) return 'pull-b';
   if (n.includes('push') && !currentTemplates['push-a']) return 'push-a';
   if (n.includes('pull') && !currentTemplates['pull-a']) return 'pull-a';
   return '';
@@ -1202,6 +1239,52 @@ function mostCommon(values) {
   return values.slice().sort((a, b) => count[b] - count[a])[0];
 }
 
+function renderProgressGraph() {
+  const el = document.getElementById('progress-graph');
+  if (!el) return;
+  const sessions = (S.hevySessions || []).filter(s => s.avgTopWeight > 0);
+  if (!sessions.length) {
+    el.innerHTML = '<div class="graph-empty">Nach dem ersten CSV-Import erscheint hier dein Verlauf.</div>';
+    return;
+  }
+  const points = sessions.slice(-12);
+  const values = points.map(p => p.avgTopWeight);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = Math.max(1, max - min);
+  const width = 640;
+  const height = 220;
+  const padX = 36;
+  const padY = 24;
+  const plotW = width - padX * 2;
+  const plotH = height - padY * 2;
+  const coords = points.map((point, index) => {
+    const x = padX + (points.length === 1 ? plotW / 2 : (plotW / (points.length - 1)) * index);
+    const y = height - padY - ((point.avgTopWeight - min) / range) * plotH;
+    return { ...point, x, y };
+  });
+  const path = coords.map((c, i) => `${i === 0 ? 'M' : 'L'} ${c.x} ${c.y}`).join(' ');
+  const yTop = max.toFixed(1);
+  const yBottom = min.toFixed(1);
+  el.innerHTML = `
+    <svg class="graph-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="progressGradient" x1="0" x2="1">
+          <stop offset="0%" stop-color="#d59cff"></stop>
+          <stop offset="100%" stop-color="#8f5cff"></stop>
+        </linearGradient>
+      </defs>
+      <line class="graph-axis" x1="${padX}" y1="${padY}" x2="${padX}" y2="${height - padY}"></line>
+      <line class="graph-axis" x1="${padX}" y1="${height - padY}" x2="${width - padX}" y2="${height - padY}"></line>
+      <path class="graph-line" d="${path}"></path>
+      ${coords.map(c => `<circle class="graph-dot" cx="${c.x}" cy="${c.y}" r="4"></circle>`).join('')}
+      <text class="graph-label" x="6" y="${padY + 4}">${yTop} kg</text>
+      <text class="graph-label" x="6" y="${height - padY}">${yBottom} kg</text>
+      ${coords.map(c => `<text class="graph-label" x="${c.x - 18}" y="${height - 8}">${String(c.date).slice(5)}</text>`).join('')}
+    </svg>
+  `;
+}
+
 function applyBackground() {
   const bg = S.backgroundImage || '';
   const photo = document.getElementById('bg-photo');
@@ -1214,9 +1297,7 @@ function ensureExerciseSeed() {
   S.exerciseTemplates = DEFAULT_EXERCISES;
   S.workoutLabels = {
     'push-a': 'PushFB',
-    'pull-a': 'Pull FB',
-    'push-b': 'Push B',
-    'pull-b': 'Pull B'
+    'pull-a': 'Pull FB'
   };
   S.exerciseTemplateVersion = EXERCISE_TEMPLATE_VERSION;
   save();
@@ -1234,7 +1315,7 @@ function init() {
   buildWeekGrid();
   buildExercises();
   buildCardioList();
-  renderTrainingLog();
+  renderProgressGraph();
   renderNutritionMode();
   renderDailyPlan();
   updateMacros();
