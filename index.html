@@ -265,6 +265,18 @@ body::before {
 .meal-items div { display: flex; justify-content: space-between; gap: 10px; }
 .meal-head { display: flex; align-items: center; gap: 12px; }
 .meal-check { flex-shrink: 0; }
+.sync-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.sync-status { font-size: 12px; color: var(--text2); line-height: 1.6; }
+.sql-box {
+  background: rgba(0,0,0,0.22);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px;
+  overflow-x: auto;
+  font-size: 11px;
+  color: var(--accent2);
+  white-space: pre;
+}
 .graph-wrap { margin-top: 8px; }
 .graph-svg { width: 100%; height: 220px; display: block; }
 .graph-axis { stroke: rgba(192,163,255,0.16); stroke-width: 1; }
@@ -300,6 +312,35 @@ body::before {
       <div class="metric-card"><div class="metric-lbl">Supplements</div><div class="metric-val" id="m-supp">0<span class="metric-unit">%</span></div></div>
       <div class="metric-card"><div class="metric-lbl">Wasser</div><div class="metric-val" id="m-water">0<span class="metric-unit">ml</span></div></div>
       <div class="metric-card"><div class="metric-lbl">Streak</div><div class="metric-val" id="m-streak">0<span class="metric-unit">d</span></div></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Cloud Sync</div>
+      <div class="sync-grid">
+        <div class="input-row" style="flex-direction:column; align-items:stretch; gap:8px">
+          <input class="input-field" id="sync-url" placeholder="Supabase URL, z.B. https://xyz.supabase.co">
+          <input class="input-field" id="sync-key" placeholder="Supabase anon key">
+          <input class="input-field" id="sync-tracker-id" placeholder="Gemeinsame Tracker-ID fuer Mac und iPhone">
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-accent" onclick="saveSyncSettings()">Sync speichern</button>
+          <button class="btn" onclick="pullCloudState()">Cloud laden</button>
+          <button class="btn" onclick="pushCloudState('manual')">Jetzt synchronisieren</button>
+        </div>
+        <label class="subtle" style="display:flex; align-items:center; gap:8px">
+          <input type="checkbox" id="sync-auto" onchange="toggleAutoSync(this.checked)">
+          Auto-Sync nach Änderungen aktivieren
+        </label>
+        <div id="sync-status" class="sync-status">Noch nicht mit Supabase verbunden.</div>
+        <div class="subtle">SQL einmal in Supabase ausführen:</div>
+        <div class="sql-box">create table if not exists tracker_states (
+  tracker_id text primary key,
+  payload jsonb not null,
+  updated_at timestamptz not null default now(),
+  device_id text
+);
+
+alter table tracker_states disable row level security;</div>
+      </div>
     </div>
     <div class="card"><div class="card-label">Morgenroutine</div><div id="list-morning"></div></div>
     <div class="card"><div class="card-label">Tagsüber</div><div id="list-day"></div></div>
@@ -440,12 +481,21 @@ body::before {
   <button class="nav-item" id="nav-supps" onclick="switchTab('supps')"><span class="nav-icon">⬡</span>Supps</button>
 </nav>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SK = 'okcomputer_v4';
 const EXERCISE_TEMPLATE_VERSION = 'hevy-workout-data-2026-03-29';
+const SYNC_TABLE = 'tracker_states';
 let S = {};
 function load() { try { S = JSON.parse(localStorage.getItem(SK) || '{}'); } catch (e) { S = {}; } }
-function save() { try { localStorage.setItem(SK, JSON.stringify(S)); } catch (e) {} }
+let syncDebounce = null;
+let suppressAutoSync = false;
+let supabaseClient = null;
+
+function save() {
+  try { localStorage.setItem(SK, JSON.stringify(S)); } catch (e) {}
+  if (!suppressAutoSync) scheduleAutoSync();
+}
 load();
 
 const todayKey = new Date().toISOString().slice(0, 10);
@@ -961,6 +1011,124 @@ function normalizeTime(value) {
   return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
 }
 
+function getSyncConfig() {
+  return S.syncConfig || { url: '', anonKey: '', trackerId: '', autoSync: false };
+}
+
+function setSyncStatus(text) {
+  const el = document.getElementById('sync-status');
+  if (el) el.textContent = text;
+}
+
+function populateSyncUI() {
+  const cfg = getSyncConfig();
+  const urlEl = document.getElementById('sync-url');
+  const keyEl = document.getElementById('sync-key');
+  const idEl = document.getElementById('sync-tracker-id');
+  const autoEl = document.getElementById('sync-auto');
+  if (urlEl) urlEl.value = cfg.url || '';
+  if (keyEl) keyEl.value = cfg.anonKey || '';
+  if (idEl) idEl.value = cfg.trackerId || '';
+  if (autoEl) autoEl.checked = !!cfg.autoSync;
+}
+
+function saveSyncSettings() {
+  S.syncConfig = {
+    url: (document.getElementById('sync-url').value || '').trim(),
+    anonKey: (document.getElementById('sync-key').value || '').trim(),
+    trackerId: (document.getElementById('sync-tracker-id').value || '').trim(),
+    autoSync: !!document.getElementById('sync-auto').checked
+  };
+  supabaseClient = null;
+  save();
+  initSupabaseClient();
+  setSyncStatus(S.syncConfig.url && S.syncConfig.trackerId ? 'Sync-Einstellungen gespeichert. Bereit zum Synchronisieren.' : 'Bitte URL, anon key und Tracker-ID eintragen.');
+  showToast('Sync gespeichert');
+}
+
+function toggleAutoSync(checked) {
+  S.syncConfig = { ...getSyncConfig(), autoSync: checked };
+  save();
+  setSyncStatus(checked ? 'Auto-Sync aktiviert.' : 'Auto-Sync deaktiviert.');
+}
+
+function initSupabaseClient() {
+  const cfg = getSyncConfig();
+  if (!cfg.url || !cfg.anonKey || !window.supabase || typeof window.supabase.createClient !== 'function') return null;
+  if (!supabaseClient) {
+    supabaseClient = window.supabase.createClient(cfg.url, cfg.anonKey, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+    });
+  }
+  return supabaseClient;
+}
+
+function exportSyncState() {
+  const clone = JSON.parse(JSON.stringify(S));
+  delete clone.syncConfig;
+  return clone;
+}
+
+function applySyncedState(payload) {
+  const cfg = S.syncConfig;
+  suppressAutoSync = true;
+  S = { ...payload, syncConfig: cfg };
+  localStorage.setItem(SK, JSON.stringify(S));
+  suppressAutoSync = false;
+  supabaseClient = null;
+  refreshUI();
+}
+
+function scheduleAutoSync() {
+  const cfg = getSyncConfig();
+  if (!cfg.autoSync || !cfg.url || !cfg.anonKey || !cfg.trackerId) return;
+  clearTimeout(syncDebounce);
+  syncDebounce = setTimeout(() => { pushCloudState('auto'); }, 900);
+}
+
+async function pushCloudState(reason = 'manual') {
+  const cfg = getSyncConfig();
+  const client = initSupabaseClient();
+  if (!client || !cfg.trackerId) {
+    setSyncStatus('Sync noch nicht verbunden. Bitte Supabase URL, anon key und Tracker-ID eintragen.');
+    return;
+  }
+  setSyncStatus('Synchronisiere in die Cloud ...');
+  const { error } = await client.from(SYNC_TABLE).upsert({
+    tracker_id: cfg.trackerId,
+    payload: exportSyncState(),
+    updated_at: new Date().toISOString(),
+    device_id: navigator.userAgent
+  });
+  if (error) {
+    setSyncStatus(`Sync-Fehler: ${error.message}`);
+    return;
+  }
+  setSyncStatus(`Cloud Sync erfolgreich (${reason === 'auto' ? 'auto' : 'manuell'}).`);
+}
+
+async function pullCloudState() {
+  const cfg = getSyncConfig();
+  const client = initSupabaseClient();
+  if (!client || !cfg.trackerId) {
+    setSyncStatus('Cloud laden nicht möglich. Bitte zuerst Sync konfigurieren.');
+    return;
+  }
+  setSyncStatus('Lade Daten aus der Cloud ...');
+  const { data, error } = await client.from(SYNC_TABLE).select('payload,updated_at').eq('tracker_id', cfg.trackerId).limit(1);
+  if (error) {
+    setSyncStatus(`Cloud-Ladefehler: ${error.message}`);
+    return;
+  }
+  if (!data || !data.length || !data[0].payload) {
+    setSyncStatus('Noch kein Cloud-Stand gefunden. Erst einmal synchronisieren.');
+    return;
+  }
+  applySyncedState(data[0].payload);
+  setSyncStatus(`Cloud-Stand geladen (${String(data[0].updated_at || '').slice(0, 16).replace('T', ' ')}).`);
+  showToast('Cloud geladen');
+}
+
 function buildSupplements() {
   const el = document.getElementById('supp-list');
   const el2 = document.getElementById('new-supp-list');
@@ -1322,9 +1490,9 @@ function ensureExerciseSeed() {
   save();
 }
 
-function init() {
-  ensureExerciseSeed();
+function refreshUI() {
   applyBackground();
+  populateSyncUI();
   updateDate();
   buildCheckList(MORNING, 'list-morning');
   buildCheckList(DAYTIME, 'list-day');
@@ -1340,6 +1508,16 @@ function init() {
   updateMacros();
   renderShoppingList();
   buildSupplements();
+}
+
+function init() {
+  ensureExerciseSeed();
+  refreshUI();
+  initSupabaseClient();
+  const cfg = getSyncConfig();
+  if (cfg.url && cfg.trackerId) {
+    setSyncStatus(cfg.autoSync ? 'Sync bereit. Auto-Sync aktiv.' : 'Sync bereit. Manuell oder per Cloud laden.');
+  }
 }
 
 init();
