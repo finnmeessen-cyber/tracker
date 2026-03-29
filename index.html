@@ -266,7 +266,15 @@ body::before {
 .meal-head { display: flex; align-items: center; gap: 12px; }
 .meal-check { flex-shrink: 0; }
 .sync-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
-.sync-status { font-size: 12px; color: var(--text2); line-height: 1.6; }
+.sync-status {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.6;
+  min-height: 19px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.sync-status.show { opacity: 1; }
 .sql-box {
   background: rgba(0,0,0,0.22);
   border: 1px solid var(--border);
@@ -289,6 +297,7 @@ body::before {
 @media (max-width: 640px) {
   .split-two, .triple-grid, .metric-grid { grid-template-columns: 1fr; }
   .week-grid { grid-template-columns: repeat(7, minmax(0,1fr)); }
+  .sync-status { min-height: 0; font-size: 11px; }
 }
 </style>
 </head>
@@ -499,6 +508,7 @@ function load() { try { S = JSON.parse(localStorage.getItem(SK) || '{}'); } catc
 let syncDebounce = null;
 let suppressAutoSync = false;
 let supabaseClient = null;
+let syncStatusTimer = null;
 
 function save() {
   try { localStorage.setItem(SK, JSON.stringify(S)); } catch (e) {}
@@ -1025,7 +1035,20 @@ function getSyncConfig() {
 
 function setSyncStatus(text) {
   const el = document.getElementById('sync-status');
-  if (el) el.textContent = text;
+  if (!el) return;
+  clearTimeout(syncStatusTimer);
+  el.textContent = text || '';
+  el.classList.toggle('show', !!text);
+  if (!text) return;
+  const isPersistent = /fehler|fehlgeschlagen|nicht möglich|nicht verbunden|kein cloud-stand/i.test(text);
+  if (!isPersistent) {
+    syncStatusTimer = setTimeout(() => {
+      const node = document.getElementById('sync-status');
+      if (!node) return;
+      node.textContent = '';
+      node.classList.remove('show');
+    }, 1800);
+  }
 }
 
 function populateSyncUI() {
