@@ -461,15 +461,19 @@ function updateDate() {
 
 const MORNING = [
   { id: 'ash', label: 'Ashwagandha KSM-66', badge: '06:30 · 600mg' },
-  { id: 'omega', label: 'Omega-3 + Vitamin A + Zink', badge: '07:00 · mit Frühstück' },
+  { id: 'omega', label: 'Omega-3', badge: '07:00 · mit Frühstück' },
   { id: 'vit', label: 'Vitamin B-Komplex + Vitamin C', badge: '07:00 · mit Frühstück' },
+  { id: 'zinkva', label: 'Zink + Vitamin A', badge: '07:00 · mit Frühstück' },
   { id: 'mahl1', label: 'Frühstück', badge: '07:00 · Makroplan' },
   { id: 'w1', label: 'Wasser 500ml', badge: '07:15' }
 ];
 const DAYTIME = [
-  { id: 'snack', label: 'Snack + Uridin + Citicolin', badge: '10:30' },
+  { id: 'snack', label: 'Snack', badge: '10:30' },
+  { id: 'uridin', label: 'Uridin Monophosphat', badge: '10:30' },
+  { id: 'citicolin', label: 'Citicolin', badge: '10:30' },
   { id: 'mahl2', label: 'Mittagessen', badge: '13:00' },
   { id: 'nac', label: 'NAC 600mg', badge: '13:00' },
+  { id: 'mahl4', label: 'Pre/Post Workout', badge: '16:30 · Makroplan' },
   { id: 'cardio', label: 'Zone 2 Bike 20 Min', badge: '3x pro Woche' },
   { id: 'w2', label: 'Wasser 500ml', badge: '14:00' },
   { id: 'w3', label: 'Wasser 500ml', badge: '16:00' }
@@ -481,7 +485,7 @@ const EVENING = [
   { id: 'glycin', label: 'Glycin 3g', badge: '21:30' },
   { id: 'sleep', label: 'Schlaf >=7h', badge: '22:00 Ziel' }
 ];
-const SUPP_IDS = ['ash', 'omega', 'vit', 'snack', 'nac', 'glutamin', 'mag', 'glycin'];
+const SUPP_IDS = ['ash', 'omega', 'vit', 'zinkva', 'uridin', 'citicolin', 'nac', 'glutamin', 'mag', 'glycin'];
 
 const WORKOUT_SLOTS = ['push-a', 'pull-a'];
 
@@ -650,19 +654,18 @@ const SHOPPING_VARIANTS = [
 ];
 
 const SUPPS = [
-  { name: 'Ashwagandha KSM-66', dose: '600mg', time: '06:30 nüchtern', tags: ['gray:Stress', 'gray:Recovery'], ev: 'Sinnvoll fuer Stressmanagement und Schlafqualitaet.' },
-  { name: 'Omega-3 (EPA/DHA)', dose: '2000mg', time: '07:00 mit Frühstück', tags: ['gray:Entzuendung'], ev: 'Gute Basis fuer allgemeine Gesundheit und Entzuendungsmanagement.' },
-  { name: 'Vitamin B-Komplex', dose: '1 Kapsel', time: '07:00 mit Frühstück', tags: ['gray:Basis'], ev: 'Solider Basis-Stack fuer Energie und Routinen.' },
-  { name: 'Vitamin C', dose: '500-1000mg', time: '07:00 mit Frühstück', tags: ['gray:Antioxidans'], ev: 'Pragmatisch und gut vertraeglich.' },
-  { name: 'Zink + Vitamin A', dose: '25mg + 5000-10000 IU', time: '07:00 mit Frühstück', tags: ['gray:Dosis im Blick'], ev: 'Vitamin A nicht unnötig hoeher fahren.' },
-  { name: 'Uridin Monophosphat', dose: '300mg', time: '10:30 mit Snack', tags: ['gray:Fokus'], ev: 'Kann in einem Fokus-Stack sinnvoll sein.' },
-  { name: 'Citicolin', dose: '250mg', time: '10:30 mit Snack', tags: ['gray:Kognition'], ev: 'Beliebte Ergaenzung fuer mentale Leistung.' },
-  { name: 'NAC', dose: '600mg', time: '13:00 mit Mahlzeit', tags: ['gray:Antioxidans'], ev: 'Passt gut in die Mittagsroutine.' },
-  { name: 'L-Tyrosin', dose: '1000mg', time: '30 Min vor Workout', tags: ['gray:Pre Workout'], ev: 'Optional vor harten Einheiten.' },
-  { name: 'L-Theanin', dose: '200-250mg', time: 'mit Tyrosin oder Kaffee', tags: ['gray:Fokus'], ev: 'Hilft, Fokus ruhiger zu halten.' },
-  { name: 'L-Glutamin', dose: '5g', time: '20:30 oder post workout', tags: ['gray:Neu'], ev: 'Jetzt im Abendfenster mit aufgenommen.' },
-  { name: 'Magnesium Glycinat', dose: '350mg', time: '21:30 vor Schlaf', tags: ['gray:Schlaf'], ev: 'Gut vertraegliche Form fuer den Abend.' },
-  { name: 'Glycin', dose: '3g', time: '21:30 vor Schlaf', tags: ['gray:Schlaf'], ev: 'Passt gut direkt vor dem Schlaf.' }
+  { id: 'ash', name: 'Ashwagandha KSM-66', dose: '600mg', time: '06:30 nüchtern', tags: ['gray:Stress', 'gray:Recovery'], ev: 'Sinnvoll fuer Stressmanagement und Schlafqualitaet.' },
+  { id: 'omega', name: 'Omega-3 (EPA/DHA)', dose: '2000mg', time: '07:00 mit Frühstück', tags: ['gray:Entzuendung'], ev: 'Gute Basis fuer allgemeine Gesundheit und Entzuendungsmanagement.' },
+  { id: 'vit', name: 'Vitamin B-Komplex + Vitamin C', dose: '1 Kapsel + 500-1000mg', time: '07:00 mit Frühstück', tags: ['gray:Basis'], ev: 'Solider Basis-Stack fuer Energie und Routinen.' },
+  { id: 'zinkva', name: 'Zink + Vitamin A', dose: '25mg + 5000-10000 IU', time: '07:00 mit Frühstück', tags: ['gray:Dosis im Blick'], ev: 'Vitamin A nicht unnötig hoeher fahren.' },
+  { id: 'uridin', name: 'Uridin Monophosphat', dose: '300mg', time: '10:30 mit Snack', tags: ['gray:Fokus'], ev: 'Kann in einem Fokus-Stack sinnvoll sein.' },
+  { id: 'citicolin', name: 'Citicolin', dose: '250mg', time: '10:30 mit Snack', tags: ['gray:Kognition'], ev: 'Beliebte Ergaenzung fuer mentale Leistung.' },
+  { id: 'nac', name: 'NAC', dose: '600mg', time: '13:00 mit Mahlzeit', tags: ['gray:Antioxidans'], ev: 'Passt gut in die Mittagsroutine.' },
+  { id: 'tyrosin', name: 'L-Tyrosin', dose: '1000mg', time: '30 Min vor Workout', tags: ['gray:Pre Workout'], ev: 'Optional vor harten Einheiten.' },
+  { id: 'theanin', name: 'L-Theanin', dose: '200-250mg', time: 'mit Tyrosin oder Kaffee', tags: ['gray:Fokus'], ev: 'Hilft, Fokus ruhiger zu halten.' },
+  { id: 'glutamin', name: 'L-Glutamin', dose: '5g', time: '20:30 oder post workout', tags: ['gray:Neu'], ev: 'Jetzt im Abendfenster mit aufgenommen.' },
+  { id: 'mag', name: 'Magnesium Glycinat', dose: '350mg', time: '21:30 vor Schlaf', tags: ['gray:Schlaf'], ev: 'Gut vertraegliche Form fuer den Abend.' },
+  { id: 'glycin', name: 'Glycin', dose: '3g', time: '21:30 vor Schlaf', tags: ['gray:Schlaf'], ev: 'Passt gut direkt vor dem Schlaf.' }
 ];
 
 const NEW_SUPPS = [
@@ -720,7 +723,10 @@ function toggleCheck(id) {
   buildCheckList(MORNING, 'list-morning');
   buildCheckList(DAYTIME, 'list-day');
   buildCheckList(EVENING, 'list-evening');
+  renderDailyPlan();
+  buildSupplements();
   updateMetrics();
+  updateMacros();
 }
 
 function updateMetrics() {
@@ -857,7 +863,8 @@ function renderDailyPlan() {
   document.getElementById('daily-plan-title').textContent = `${plan.title} · zufällig für ${todayKey} ausgewählt`;
   const day = getDay(todayKey);
   document.getElementById('daily-plan').innerHTML = plan.meals.map((meal, index) => {
-    const done = !!day[`planmeal_${currentMode()}_${index}`];
+    const sharedId = mealCheckId(meal, index);
+    const done = !!day[sharedId];
     return `
     <div class="meal-plan">
       <div class="meal-head">
@@ -875,12 +882,9 @@ function renderDailyPlan() {
 }
 
 function togglePlanMeal(index) {
-  const day = getDay(todayKey);
-  const key = `planmeal_${currentMode()}_${index}`;
-  day[key] = !day[key];
-  setDay(todayKey, day);
-  renderDailyPlan();
-  updateMacros();
+  const plan = activePlan();
+  const key = mealCheckId(plan.meals[index], index);
+  toggleCheck(key);
 }
 
 function saveMacros() {
@@ -918,7 +922,7 @@ function getConsumedPlanMacros() {
   const day = getDay(todayKey);
   const plan = activePlan();
   return plan.meals.reduce((acc, meal, index) => {
-    const key = `planmeal_${currentMode()}_${index}`;
+    const key = mealCheckId(meal, index);
     if (!day[key]) return acc;
     const parsed = parseMacroString(meal.macros);
     acc.protein += parsed.protein;
@@ -926,6 +930,16 @@ function getConsumedPlanMacros() {
     acc.fat += parsed.fat;
     return acc;
   }, { protein: 0, carbs: 0, fat: 0 });
+}
+
+function mealCheckId(meal, index) {
+  const title = String(meal.title || '').toLowerCase();
+  if (title.includes('frühstück') || title.includes('fruhstuck')) return 'mahl1';
+  if (title.includes('snack')) return 'snack';
+  if (title.includes('mittag')) return 'mahl2';
+  if (title.includes('pre') || title.includes('post')) return 'mahl4';
+  if (title.includes('abend')) return 'mahl3';
+  return `mahl${index + 1}`;
 }
 
 function renderShoppingList() {
@@ -955,11 +969,16 @@ function buildSupplements() {
 }
 
 function suppHtml(s, isNew) {
+  const day = getDay(todayKey);
+  const done = s.id ? !!day[s.id] : false;
   const rec = isNew ? `<span class="tag">${s.rec}</span>` : '';
   const tags = s.tags.map(t => `<span class="tag">${t.split(':')[1]}</span>`).join('');
   return `<div class="supp-row">
     <div class="supp-head">
-      <div class="supp-name">${s.name} ${rec}</div>
+      <div style="display:flex; align-items:center; gap:10px">
+        ${s.id ? `<div class="check-box${done ? ' done' : ''}" onclick="toggleCheck('${s.id}')"></div>` : ''}
+        <div class="supp-name">${s.name} ${rec}</div>
+      </div>
       <div class="supp-dose">${s.dose}</div>
     </div>
     <div class="supp-time">◷ ${s.time}</div>
