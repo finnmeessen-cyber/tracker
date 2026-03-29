@@ -1038,7 +1038,6 @@ function populateSyncUI() {
   if (keyEl) keyEl.value = cfg.anonKey || '';
   if (idEl) idEl.value = cfg.trackerId || '';
   if (autoEl) autoEl.checked = !!cfg.autoSync;
-  renderSyncCard();
 }
 
 function renderSyncCard() {
@@ -1073,25 +1072,28 @@ async function testSyncConnection() {
 }
 
 async function saveSyncSettings() {
-  S.syncConfig = {
+  const nextConfig = {
     url: (document.getElementById('sync-url').value || '').trim(),
     anonKey: (document.getElementById('sync-key').value || '').trim(),
     trackerId: (document.getElementById('sync-tracker-id').value || '').trim(),
     autoSync: !!document.getElementById('sync-auto').checked,
-    connected: false
+    connected: !!getSyncConfig().connected
   };
+  S.syncConfig = nextConfig;
   supabaseClient = null;
-  save();
   setSyncBusy(true);
   setSyncStatus('Prüfe Verbindung zu Supabase ...');
   try {
     await testSyncConnection();
-    S.syncConfig = { ...getSyncConfig(), connected: true };
+    S.syncConfig = { ...nextConfig, connected: true };
     save();
     renderSyncCard();
     setSyncStatus('Supabase verbunden. Das Setup-Feld wurde ausgeblendet.');
     showToast('Sync verbunden');
   } catch (error) {
+    S.syncConfig = { ...nextConfig, connected: false };
+    save();
+    renderSyncCard();
     setSyncStatus(`Verbindung fehlgeschlagen: ${error.message}`);
   } finally {
     setSyncBusy(false);
