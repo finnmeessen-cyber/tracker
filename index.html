@@ -1056,9 +1056,13 @@ function setSyncBusy(isBusy) {
   });
 }
 
+function persistSyncConfig(syncConfig) {
+  S.syncConfig = syncConfig;
+  try { localStorage.setItem(SK, JSON.stringify(S)); } catch (e) {}
+}
+
 function showSyncSettings() {
-  S.syncConfig = { ...getSyncConfig(), connected: false };
-  save();
+  persistSyncConfig({ ...getSyncConfig(), connected: false });
   renderSyncCard();
   setSyncStatus('Sync-Einstellungen geöffnet.');
 }
@@ -1085,14 +1089,12 @@ async function saveSyncSettings() {
   setSyncStatus('Prüfe Verbindung zu Supabase ...');
   try {
     await testSyncConnection();
-    S.syncConfig = { ...nextConfig, connected: true };
-    save();
+    persistSyncConfig({ ...nextConfig, connected: true });
     renderSyncCard();
     setSyncStatus('Supabase verbunden. Das Setup-Feld wurde ausgeblendet.');
     showToast('Sync verbunden');
   } catch (error) {
-    S.syncConfig = { ...nextConfig, connected: false };
-    save();
+    persistSyncConfig({ ...nextConfig, connected: false });
     renderSyncCard();
     setSyncStatus(`Verbindung fehlgeschlagen: ${error.message}`);
   } finally {
@@ -1157,9 +1159,7 @@ async function pushCloudState(reason = 'manual') {
       device_id: navigator.userAgent
     });
     if (error) throw error;
-    S.syncConfig = { ...cfg, connected: true };
-    save();
-    renderSyncCard();
+    persistSyncConfig({ ...cfg, connected: true });
     setSyncStatus(`Cloud Sync erfolgreich (${reason === 'auto' ? 'auto' : 'manuell'}).`);
   } catch (error) {
     setSyncStatus(`Sync-Fehler: ${error.message}`);
@@ -1184,9 +1184,8 @@ async function pullCloudState() {
       setSyncStatus('Noch kein Cloud-Stand gefunden. Erst einmal synchronisieren.');
       return;
     }
-    S.syncConfig = { ...cfg, connected: true };
+    persistSyncConfig({ ...cfg, connected: true });
     applySyncedState(data[0].payload);
-    renderSyncCard();
     setSyncStatus(`Cloud-Stand geladen (${String(data[0].updated_at || '').slice(0, 16).replace('T', ' ')}).`);
     showToast('Cloud geladen');
   } catch (error) {
