@@ -340,10 +340,10 @@ body::before {
       <button class="btn btn-accent" style="margin-top:10px; width:100%" onclick="saveTraining()">Training speichern</button>
     </div>
     <div class="split-two">
-      <div class="card"><div class="card-label">Push A</div><div id="ex-push-a"></div></div>
-      <div class="card"><div class="card-label">Pull A</div><div id="ex-pull-a"></div></div>
-      <div class="card"><div class="card-label">Push B</div><div id="ex-push-b"></div></div>
-      <div class="card"><div class="card-label">Pull B</div><div id="ex-pull-b"></div></div>
+      <div class="card"><div class="card-label" id="label-push-a">Push A</div><div id="ex-push-a"></div></div>
+      <div class="card"><div class="card-label" id="label-pull-a">Pull A</div><div id="ex-pull-a"></div></div>
+      <div class="card"><div class="card-label" id="label-push-b">Push B</div><div id="ex-push-b"></div></div>
+      <div class="card"><div class="card-label" id="label-pull-b">Pull B</div><div id="ex-pull-b"></div></div>
     </div>
     <div class="card"><div class="card-label">Training-Log</div><div id="training-log"></div></div>
   </div>
@@ -443,6 +443,7 @@ body::before {
 
 <script>
 const SK = 'okcomputer_v4';
+const EXERCISE_TEMPLATE_VERSION = 'hevy-workout-data-2026-03-29';
 let S = {};
 function load() { try { S = JSON.parse(localStorage.getItem(SK) || '{}'); } catch (e) { S = {}; } }
 function save() { try { localStorage.setItem(SK, JSON.stringify(S)); } catch (e) {} }
@@ -483,18 +484,24 @@ const EVENING = [
 ];
 const SUPP_IDS = ['ash', 'omega', 'vit', 'snack', 'nac', 'glutamin', 'mag', 'glycin'];
 
-const EXERCISES = {
+const WORKOUT_SLOTS = ['push-a', 'pull-a', 'push-b', 'pull-b'];
+
+const DEFAULT_EXERCISES = {
   'push-a': [
-    { name: 'Schrägbank (KH)', sets: '3x6', kg: '25kg', note: 'sauberer Stretch' },
-    { name: 'Butterfly', sets: '3x8', kg: '70kg', note: 'Peak halten' },
-    { name: 'Seitheben', sets: '3x8', kg: '12kg', note: 'Kontrolle vor Load' },
-    { name: 'Trizeps Kabel', sets: '3x8', kg: '75kg', note: 'Ellbogen stabil' }
+    { name: 'Hüftadduktion', sets: '2x8', kg: '85kg', note: 'Aus Hevy CSV übernommen' },
+    { name: 'Wadendrücken (Maschine)', sets: '2x8', kg: '45kg', note: 'Aus Hevy CSV übernommen' },
+    { name: 'Beinstrecken', sets: '2x10 (10/9)', kg: '70kg', note: 'Aus Hevy CSV übernommen' },
+    { name: 'Butterfly', sets: '2x7', kg: '55kg', note: 'Aus Hevy CSV übernommen' },
+    { name: 'Einarmiges Seitheben (Kabelzug)', sets: '2x8', kg: '45kg', note: 'Aus Hevy CSV übernommen' },
+    { name: 'Schrägbankdrücken (Smith Machine)', sets: '2x5', kg: '22.5kg', note: 'Aus Hevy CSV übernommen' },
+    { name: 'Trizepsdrücken', sets: '2x6', kg: '22.5kg', note: 'Aus Hevy CSV übernommen' }
   ],
   'pull-a': [
-    { name: 'Latzug breit', sets: '3x6', kg: '95kg', note: 'Brust hoch' },
-    { name: 'Rudern Kabel', sets: '3x6', kg: '95kg', note: 'eng führen' },
-    { name: 'Preacher Curls', sets: '3x8', kg: '65kg', note: 'kein Schwung' },
-    { name: 'Leg Curl', sets: '3x10', kg: '55kg', note: 'exzentrisch' }
+    { name: 'Crunch (Maschine)', sets: '2x8', kg: '90kg', note: '1satz unsauber · Aus Hevy CSV übernommen' },
+    { name: 'Preacher Curl (Maschine)', sets: '2x7', kg: '60kg', note: 'Aus Hevy CSV übernommen' },
+    { name: 'Latzug (Kabel)', sets: '2x7 (7/5)', kg: '85kg', note: 'Aus Hevy CSV übernommen' },
+    { name: 'Rudern sitzend (Maschine)', sets: '2x8 (8/5)', kg: '100kg', note: 'Aus Hevy CSV übernommen' },
+    { name: 'Hammer Curl (Kabel)', sets: '2x5', kg: '45kg', note: 'Aus Hevy CSV übernommen' }
   ],
   'push-b': [
     { name: 'Flachbank (KH)', sets: '3x8', kg: '22kg', note: 'volle ROM' },
@@ -637,6 +644,24 @@ const SHOPPING_LIST = [
   { item: 'Olivenöl, Leinsamen, Nuss-Mix', note: 'Fettquellen kontrolliert einsetzen' }
 ];
 
+const SHOPPING_VARIANTS = [
+  [
+    { item: 'Wraps', note: 'fuer schnelle Dinner-Variation' },
+    { item: 'Skyr', note: 'als Alternative zu Magerquark' },
+    { item: 'TK-Beeren extra', note: 'mehr Snack- und Frühstücksvariation' }
+  ],
+  [
+    { item: 'Vollkorntoast', note: 'Pre-Workout oder Frühstück' },
+    { item: 'Cornflakes / Rice Cereal', note: 'leichte Carbs rund ums Training' },
+    { item: 'Avocados', note: 'für kontrollierte Fett-Tage' }
+  ],
+  [
+    { item: 'Putenbrust', note: 'Alternative zu Hähnchen für Lunch und Snack' },
+    { item: 'Kartoffeln extra', note: 'für Entladetag und Dinner-Variation' },
+    { item: 'Honig / Marmelade', note: 'schnelle Carbs an Trainings- und Ladetagen' }
+  ]
+];
+
 const SUPPS = [
   { name: 'Ashwagandha KSM-66', dose: '600mg', time: '06:30 nüchtern', tags: ['gray:Stress', 'gray:Recovery'], ev: 'Sinnvoll fuer Stressmanagement und Schlafqualitaet.' },
   { name: 'Omega-3 (EPA/DHA)', dose: '2000mg', time: '07:00 mit Frühstück', tags: ['gray:Entzuendung'], ev: 'Gute Basis fuer allgemeine Gesundheit und Entzuendungsmanagement.' },
@@ -674,6 +699,19 @@ function activePlan() {
   const plans = PLAN_LIBRARY[mode];
   const idx = hashString(`${todayKey}-${mode}`) % plans.length;
   return plans[idx];
+}
+
+function getExerciseTemplates() {
+  return S.exerciseTemplates || DEFAULT_EXERCISES;
+}
+
+function getWorkoutLabels() {
+  return S.workoutLabels || {
+    'push-a': 'PushFB',
+    'pull-a': 'Pull FB',
+    'push-b': 'Push B',
+    'pull-b': 'Pull B'
+  };
 }
 
 function buildCheckList(items, containerId) {
@@ -762,8 +800,12 @@ function buildWeekGrid() {
 }
 
 function buildExercises() {
-  Object.entries(EXERCISES).forEach(([key, exs]) => {
+  const templates = getExerciseTemplates();
+  const labels = getWorkoutLabels();
+  Object.entries(templates).forEach(([key, exs]) => {
     const el = document.getElementById(`ex-${key}`);
+    const labelEl = document.getElementById(`label-${key}`);
+    if (labelEl) labelEl.textContent = labels[key] || key;
     el.innerHTML = exs.map(ex => `
       <div class="ex-row">
         <div><div class="ex-name">${ex.name}</div><div class="shop-note">${ex.note}</div></div>
@@ -894,7 +936,9 @@ function updateMacros() {
 
 function renderShoppingList() {
   const el = document.getElementById('shopping-list');
-  el.innerHTML = SHOPPING_LIST.map(row => `
+  const variant = SHOPPING_VARIANTS[hashString(weekStamp()) % SHOPPING_VARIANTS.length];
+  const rows = [...SHOPPING_LIST, ...variant];
+  el.innerHTML = rows.map(row => `
     <div class="shop-line">
       <div>
         <div class="ex-name">${row.item}</div>
@@ -977,11 +1021,19 @@ function importHevyFile(event) {
     try {
       const parsed = file.name.endsWith('.json') ? parseHevyJson(text) : parseHevyCsv(text);
       S.trainingLog = S.trainingLog || [];
-      parsed.slice(0, 8).reverse().forEach(entry => S.trainingLog.unshift(entry));
+      parsed.logs.slice(0, 8).reverse().forEach(entry => S.trainingLog.unshift(entry));
       S.trainingLog = S.trainingLog.slice(0, 40);
+      if (parsed.templates && Object.keys(parsed.templates).length) {
+        S.exerciseTemplates = parsed.templates;
+        S.workoutLabels = parsed.labels || getWorkoutLabels();
+        S.exerciseTemplateVersion = `custom:${file.name}:${Date.now()}`;
+      }
       save();
+      buildExercises();
       renderTrainingLog();
-      document.getElementById('hevy-status').textContent = `${parsed.length} Einträge aus ${file.name} importiert.`;
+      const importedWorkouts = parsed.logs.length;
+      const updatedTemplates = parsed.templates ? Object.keys(parsed.templates).length : 0;
+      document.getElementById('hevy-status').textContent = `${importedWorkouts} Einträge aus ${file.name} importiert. Trainingskarten ${updatedTemplates ? 'wurden aktualisiert' : 'blieben unverändert'}.`;
       showToast('Hevy Import fertig');
     } catch (err) {
       document.getElementById('hevy-status').textContent = `Import aus ${file.name} konnte nicht gelesen werden.`;
@@ -993,30 +1045,53 @@ function importHevyFile(event) {
 function parseHevyJson(text) {
   const data = JSON.parse(text);
   const rows = Array.isArray(data) ? data : (data.workouts || data.data || []);
-  return rows.map((row, index) => ({
+  const logs = rows.map((row, index) => ({
     date: row.date || row.started_at || row.start_date || todayKey,
     day: row.title || row.name || row.workout_name || `Hevy Workout ${index + 1}`,
     note: row.description || row.notes || '',
     source: 'hevy'
   }));
+  return { logs, templates: {}, labels: {} };
 }
 
 function parseHevyCsv(text) {
   const lines = text.trim().split(/\r?\n/).filter(Boolean);
   if (lines.length < 2) throw new Error('empty');
-  const headers = splitCsvLine(lines[0]).map(h => h.trim().toLowerCase());
-  const idxDate = findHeader(headers, ['date', 'workout date', 'start date']);
-  const idxName = findHeader(headers, ['title', 'workout', 'workout name', 'routine']);
+  const headers = splitCsvLine(lines[0]).map(normalizeHeader);
+  const idxDate = findHeader(headers, ['date', 'workoutdate', 'startdate', 'startedat']);
+  const idxName = findHeader(headers, ['title', 'workout', 'workoutname', 'routine', 'routinename']);
   const idxNote = findHeader(headers, ['description', 'notes', 'comment']);
-  return lines.slice(1).map((line, index) => {
+  const idxExercise = findHeader(headers, ['exercise', 'exercisename', 'movement', 'titleexercise']);
+  const idxReps = findHeader(headers, ['reps', 'rep', 'repetitions']);
+  const idxWeight = findHeader(headers, ['weightkg', 'weight', 'kg', 'weightkgs']);
+  const idxSet = findHeader(headers, ['setorder', 'set', 'setnumber', 'setindex']);
+
+  const logs = [];
+  const grouped = {};
+
+  lines.slice(1).forEach((line, index) => {
     const cols = splitCsvLine(line);
-    return {
-      date: idxDate >= 0 ? cols[idxDate] : todayKey,
-      day: idxName >= 0 ? cols[idxName] : `Hevy Workout ${index + 1}`,
-      note: idxNote >= 0 ? cols[idxNote] : '',
-      source: 'hevy'
-    };
-  }).filter(row => row.day && row.day.trim());
+    const workoutName = idxName >= 0 ? cols[idxName] : `Hevy Workout ${index + 1}`;
+    const date = idxDate >= 0 ? cols[idxDate] : todayKey;
+    const note = idxNote >= 0 ? cols[idxNote] : '';
+    if (!workoutName || !String(workoutName).trim()) return;
+
+    logs.push({ date, day: workoutName, note, source: 'hevy' });
+
+    const exerciseName = idxExercise >= 0 ? cols[idxExercise] : '';
+    if (!exerciseName || !String(exerciseName).trim()) return;
+    const groupKey = `${date}__${workoutName}`;
+    if (!grouped[groupKey]) grouped[groupKey] = { date, workoutName, exercises: {} };
+    if (!grouped[groupKey].exercises[exerciseName]) grouped[groupKey].exercises[exerciseName] = [];
+    grouped[groupKey].exercises[exerciseName].push({
+      reps: idxReps >= 0 ? cols[idxReps] : '',
+      weight: idxWeight >= 0 ? cols[idxWeight] : '',
+      set: idxSet >= 0 ? cols[idxSet] : ''
+    });
+  });
+
+  const templates = buildTemplatesFromHevyGroups(grouped);
+  return { logs: dedupeLogs(logs), templates: templates.templates, labels: templates.labels };
 }
 
 function splitCsvLine(line) {
@@ -1041,13 +1116,114 @@ function findHeader(headers, options) {
   return headers.findIndex(h => options.includes(h));
 }
 
+function normalizeHeader(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function dedupeLogs(logs) {
+  const seen = new Set();
+  return logs.filter(log => {
+    const key = `${log.date}__${log.day}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function buildTemplatesFromHevyGroups(grouped) {
+  const workouts = Object.values(grouped).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const named = [];
+  const seenNames = new Set();
+  workouts.forEach(workout => {
+    const normalizedName = String(workout.workoutName).trim();
+    if (!normalizedName || seenNames.has(normalizedName)) return;
+    seenNames.add(normalizedName);
+    named.push(workout);
+  });
+
+  const templates = {};
+  const labels = {};
+  named.slice(0, WORKOUT_SLOTS.length).forEach((workout, index) => {
+    const slot = inferWorkoutSlot(workout.workoutName, templates) || WORKOUT_SLOTS.find(name => !templates[name]) || WORKOUT_SLOTS[index];
+    templates[slot] = Object.entries(workout.exercises).map(([name, sets]) => {
+      const reps = sets.map(set => cleanNumber(set.reps)).filter(Boolean);
+      const weights = sets.map(set => cleanWeight(set.weight)).filter(Boolean);
+      const setCount = sets.length || 1;
+      const commonReps = mostCommon(reps) || '?';
+      const lastWeight = weights[weights.length - 1] || '-';
+      const repSuffix = reps.length > 1 && new Set(reps).size > 1 ? ` (${reps.slice(0, 4).join('/')})` : '';
+      return {
+        name,
+        sets: `${setCount}x${commonReps}${repSuffix}`,
+        kg: lastWeight,
+        note: 'Aus Hevy importiert'
+      };
+    });
+    labels[slot] = workout.workoutName;
+  });
+
+  WORKOUT_SLOTS.forEach(slot => {
+    if (!templates[slot]) templates[slot] = DEFAULT_EXERCISES[slot];
+    if (!labels[slot]) labels[slot] = getWorkoutLabels()[slot] || slot;
+  });
+  return { templates, labels };
+}
+
+function inferWorkoutSlot(name, currentTemplates) {
+  const n = String(name || '').toLowerCase();
+  if (n.includes('pushfb') && !currentTemplates['push-a']) return 'push-a';
+  if (n.includes('pullfb') && !currentTemplates['pull-a']) return 'pull-a';
+  if (n.includes('pull fb') && !currentTemplates['pull-a']) return 'pull-a';
+  if (n.includes('push') && n.includes('a') && !currentTemplates['push-a']) return 'push-a';
+  if (n.includes('pull') && n.includes('a') && !currentTemplates['pull-a']) return 'pull-a';
+  if (n.includes('push') && n.includes('b') && !currentTemplates['push-b']) return 'push-b';
+  if (n.includes('pull') && n.includes('b') && !currentTemplates['pull-b']) return 'pull-b';
+  if (n.includes('push') && !currentTemplates['push-a']) return 'push-a';
+  if (n.includes('pull') && !currentTemplates['pull-a']) return 'pull-a';
+  return '';
+}
+
+function cleanNumber(value) {
+  const match = String(value || '').match(/\d+/);
+  return match ? match[0] : '';
+}
+
+function cleanWeight(value) {
+  const cleaned = String(value || '').replace(',', '.').trim();
+  if (!cleaned) return '-';
+  const match = cleaned.match(/-?\d+(\.\d+)?/);
+  return match ? `${match[0]}kg` : cleaned;
+}
+
+function mostCommon(values) {
+  if (!values.length) return '';
+  const count = {};
+  values.forEach(v => { count[v] = (count[v] || 0) + 1; });
+  return values.slice().sort((a, b) => count[b] - count[a])[0];
+}
+
 function applyBackground() {
   const bg = S.backgroundImage || '';
   const photo = document.getElementById('bg-photo');
   if (bg) photo.style.backgroundImage = `url("${bg}")`;
 }
 
+function ensureExerciseSeed() {
+  if (String(S.exerciseTemplateVersion || '').startsWith('custom:') && S.exerciseTemplates) return;
+  if (S.exerciseTemplateVersion === EXERCISE_TEMPLATE_VERSION && S.exerciseTemplates) return;
+  S.exerciseTemplates = DEFAULT_EXERCISES;
+  S.workoutLabels = {
+    'push-a': 'PushFB',
+    'pull-a': 'Pull FB',
+    'push-b': 'Push B',
+    'pull-b': 'Pull B'
+  };
+  S.exerciseTemplateVersion = EXERCISE_TEMPLATE_VERSION;
+  save();
+}
+
 function init() {
+  ensureExerciseSeed();
   applyBackground();
   updateDate();
   buildCheckList(MORNING, 'list-morning');
