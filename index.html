@@ -5,136 +5,278 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0a0a0a">
-<title>OKComputer — Daily Tracker</title>
+<meta name="theme-color" content="#09070d">
+<title>tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0a0a0a;
-  --surface: #141414;
-  --surface2: #1e1e1e;
-  --surface3: #282828;
-  --border: rgba(255,255,255,0.08);
-  --border2: rgba(255,255,255,0.14);
-  --text: #f0ede8;
-  --text2: #888880;
-  --text3: #555550;
-  --accent: #c8f060;
-  --accent2: #8de8c8;
-  --accent3: #f0a060;
-  --danger: #f06060;
-  --font-head: 'Syne', sans-serif;
+  --bg: #09070d;
+  --surface: rgba(18, 15, 24, 0.86);
+  --surface2: rgba(28, 23, 37, 0.9);
+  --surface3: rgba(44, 35, 61, 0.95);
+  --border: rgba(192, 163, 255, 0.12);
+  --border2: rgba(192, 163, 255, 0.22);
+  --text: #f3eefc;
+  --text2: #b7abc9;
+  --text3: #786b8d;
+  --accent: #b37cff;
+  --accent2: #d59cff;
+  --accent3: #8f5cff;
+  --danger: #f56d95;
+  --font-head: 'Space Grotesk', sans-serif;
   --font-mono: 'DM Mono', monospace;
-  --r: 10px;
-  --rl: 16px;
+  --r: 12px;
+  --rl: 18px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html { background: var(--bg); }
-body { background: var(--bg); color: var(--text); font-family: var(--font-mono); min-height: 100vh; padding-bottom: 90px; }
-.topbar { position: sticky; top: 0; z-index: 100; background: rgba(10,10,10,0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
-.topbar-title { font-family: var(--font-head); font-weight: 800; font-size: 17px; color: var(--accent); letter-spacing: -0.02em; }
-.topbar-date { font-size: 11px; color: var(--text3); font-family: var(--font-mono); }
-.today-ring { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; margin-right: 6px; animation: pulse 2.5s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-.bottomnav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: rgba(10,10,10,0.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; padding: 8px 0 max(8px, env(safe-area-inset-bottom)); }
-.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 4px; cursor: pointer; transition: color 0.15s; color: var(--text3); font-size: 10px; font-family: var(--font-mono); border: none; background: none; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  min-height: 100vh;
+  padding-bottom: 92px;
+  position: relative;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at top left, rgba(179,124,255,0.18), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(143,92,255,0.14), transparent 28%);
+  pointer-events: none;
+  z-index: -2;
+}
+.bg-photo {
+  position: fixed;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0.38;
+  filter: saturate(0.9) contrast(1.05);
+  z-index: -4;
+}
+.bg-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(7,5,12,0.66), rgba(7,5,12,0.86));
+  z-index: -3;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(9, 7, 13, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.topbar-title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+  text-transform: lowercase;
+  background: linear-gradient(90deg, #d9b7ff 0%, #b37cff 48%, #8f5cff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.topbar-date { font-size: 11px; color: var(--text3); }
+.bottomnav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(9, 7, 13, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 4px;
+  cursor: pointer;
+  transition: color 0.15s;
+  color: var(--text3);
+  font-size: 10px;
+  font-family: var(--font-mono);
+  border: none;
+  background: none;
+}
 .nav-item.active { color: var(--accent); }
 .nav-icon { font-size: 18px; line-height: 1; }
-.nav-item.active .nav-icon { filter: drop-shadow(0 0 8px var(--accent)); }
-.content { padding: 16px; max-width: 720px; margin: 0 auto; }
+.nav-item.active .nav-icon { filter: drop-shadow(0 0 8px rgba(179,124,255,0.45)); }
+.content { padding: 16px; max-width: 760px; margin: 0 auto; }
 .section { display: none; }
 .section.active { display: block; }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rl); padding: 16px; margin-bottom: 12px; }
-.card-label { font-size: 10px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; font-family: var(--font-mono); margin-bottom: 12px; }
-.card-title { font-family: var(--font-head); font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--rl);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+}
+.card-label {
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
 .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-.metric-card { background: var(--surface2); border-radius: var(--r); padding: 14px 12px; }
+.metric-card { background: var(--surface2); border-radius: var(--r); padding: 14px 12px; border: 1px solid rgba(192,163,255,0.08); }
 .metric-lbl { font-size: 10px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
-.metric-val { font-family: var(--font-head); font-size: 26px; font-weight: 700; color: var(--text); line-height: 1; }
+.metric-val { font-family: var(--font-head); font-size: 25px; font-weight: 700; color: var(--text); line-height: 1.05; }
 .metric-unit { font-size: 13px; font-weight: 400; color: var(--text2); }
-.check-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); position: relative; }
-.check-row:last-child { border-bottom: none; }
-.check-box { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--border2); background: transparent; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.metric-sub { font-size: 10px; color: var(--text3); margin-top: 6px; }
+.check-row, .supp-row, .shop-line, .log-item { padding: 11px 0; border-bottom: 1px solid var(--border); }
+.check-row:last-child, .supp-row:last-child, .shop-line:last-child, .log-item:last-child { border-bottom: none; }
+.check-row { display: flex; align-items: center; gap: 12px; }
+.check-box {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border2);
+  background: transparent;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .check-box.done { background: var(--accent); border-color: var(--accent); }
-.check-box.done::after { content: '✓'; font-size: 12px; color: #0a0a0a; font-weight: 700; }
-.check-label { flex: 1; font-size: 13px; color: var(--text); font-family: var(--font-mono); line-height: 1.4; cursor: pointer; }
+.check-box.done::after { content: '✓'; font-size: 12px; color: #120d1a; font-weight: 700; }
+.check-label { flex: 1; font-size: 13px; line-height: 1.45; cursor: pointer; }
 .check-label.done { color: var(--text3); text-decoration: line-through; }
-.check-badge { font-size: 10px; color: var(--text3); white-space: nowrap; font-family: var(--font-mono); text-align: right; }
-.prog-wrap { background: var(--surface3); border-radius: 99px; height: 4px; overflow: hidden; margin: 6px 0 10px; }
-.prog-bar { height: 100%; border-radius: 99px; background: var(--accent); transition: width 0.4s cubic-bezier(0.25,0.46,0.45,0.94); }
-.week-grid, .triple-grid { display: grid; gap: 6px; }
+.check-badge { font-size: 10px; color: var(--text3); white-space: nowrap; text-align: right; }
+.prog-wrap { background: var(--surface3); border-radius: 999px; height: 5px; overflow: hidden; margin: 8px 0 10px; }
+.prog-bar { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent3)); border-radius: 999px; transition: width 0.3s ease; }
+.week-grid, .triple-grid, .split-two { display: grid; gap: 10px; }
 .week-grid { grid-template-columns: repeat(7, 1fr); }
 .triple-grid { grid-template-columns: repeat(3, 1fr); }
-.day-cell { background: var(--surface2); border-radius: 8px; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; }
-.day-cell.done { background: rgba(200,240,96,0.12); border-color: rgba(200,240,96,0.3); }
-.day-cell.today { border-color: rgba(200,240,96,0.5); }
-.day-cell-name { font-size: 9px; color: var(--text3); font-family: var(--font-mono); }
+.split-two { grid-template-columns: 1fr 1fr; }
+.day-cell {
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid transparent;
+}
+.day-cell.done { background: rgba(179,124,255,0.12); border-color: rgba(179,124,255,0.28); }
+.day-cell.today { border-color: rgba(179,124,255,0.44); }
+.day-cell-name { font-size: 9px; color: var(--text3); }
 .day-cell-num { font-family: var(--font-head); font-size: 13px; font-weight: 700; color: var(--text2); }
-.day-cell.done .day-cell-num, .day-cell.today .day-cell-name { color: var(--accent); }
+.day-cell.done .day-cell-num, .day-cell.today .day-cell-name { color: var(--accent2); }
 .day-cell-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--surface3); }
-.day-cell.done .day-cell-dot { background: var(--accent); }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 16px; border-radius: var(--r); border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 13px; font-family: var(--font-mono); cursor: pointer; transition: all 0.15s; text-decoration: none; }
-.btn:hover { background: var(--surface3); border-color: var(--border2); }
-.btn-accent { background: var(--accent); border-color: var(--accent); color: #0a0a0a; font-weight: 500; }
-.btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-.input-field { width: 100%; padding: 10px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); color: var(--text); font-family: var(--font-mono); font-size: 14px; outline: none; transition: border-color 0.15s; }
+.day-cell.done .day-cell-dot { background: var(--accent2); }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: var(--r);
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+.btn:hover { background: var(--surface3); }
+.btn-accent {
+  background: linear-gradient(90deg, rgba(179,124,255,0.92), rgba(143,92,255,0.92));
+  border-color: rgba(213,156,255,0.38);
+  color: #120d1a;
+  font-weight: 700;
+}
+.btn-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.mode-btn { min-width: 118px; }
+.mode-btn.active {
+  background: linear-gradient(90deg, #c99dff 0%, #8f5cff 100%);
+  border-color: rgba(213,156,255,0.55);
+  color: #120d1a;
+  box-shadow: 0 0 0 1px rgba(213,156,255,0.12), 0 10px 24px rgba(143,92,255,0.28);
+}
+.input-field {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  outline: none;
+}
 .input-field:focus { border-color: var(--accent); }
-.input-field::placeholder { color: var(--text3); }
 .input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.input-lbl { font-size: 12px; color: var(--text2); min-width: 120px; font-family: var(--font-mono); }
-select.input-field { cursor: pointer; }
-.tag { display: inline-block; font-size: 10px; padding: 3px 8px; border-radius: 99px; margin: 2px 2px 0 0; font-family: var(--font-mono); font-weight: 500; }
-.tag-green { background: rgba(141,232,200,0.15); color: var(--accent2); border: 1px solid rgba(141,232,200,0.2); }
-.tag-yellow { background: rgba(200,240,96,0.15); color: var(--accent); border: 1px solid rgba(200,240,96,0.2); }
-.tag-orange { background: rgba(240,160,96,0.15); color: var(--accent3); border: 1px solid rgba(240,160,96,0.2); }
-.tag-red { background: rgba(240,96,96,0.15); color: var(--danger); border: 1px solid rgba(240,96,96,0.2); }
-.tag-gray { background: rgba(255,255,255,0.06); color: var(--text2); border: 1px solid var(--border); }
-.supp-row, .log-item, .offer-row { padding: 12px 0; border-bottom: 1px solid var(--border); }
-.supp-row:last-child, .log-item:last-child, .offer-row:last-child { border-bottom: none; }
-.supp-head, .log-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.supp-name { font-family: var(--font-head); font-size: 15px; font-weight: 600; color: var(--text); }
-.supp-dose { font-size: 11px; color: var(--accent); font-family: var(--font-mono); }
-.supp-time { font-size: 11px; color: var(--text3); margin-bottom: 6px; font-family: var(--font-mono); }
-.supp-ev { font-size: 12px; color: var(--text2); line-height: 1.6; margin-top: 8px; display: none; }
-.supp-ev-toggle { font-size: 11px; color: var(--accent2); cursor: pointer; margin-top: 6px; display: inline-block; font-family: var(--font-mono); }
-.empty-state { text-align: center; padding: 24px 0; color: var(--text3); font-size: 13px; }
+.input-lbl { font-size: 12px; color: var(--text2); min-width: 120px; }
+.subtle { font-size: 12px; color: var(--text2); line-height: 1.7; }
 .sec-header { margin-bottom: 16px; padding-top: 4px; }
-.sec-header h2 { font-family: var(--font-head); font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
-.sec-header p { font-size: 12px; color: var(--text3); margin-top: 3px; }
+.sec-header h2 { font-family: var(--font-head); font-size: 22px; font-weight: 700; letter-spacing: -0.03em; }
+.sec-header p { font-size: 12px; color: var(--text3); margin-top: 4px; }
+.tag { display: inline-block; font-size: 10px; padding: 3px 8px; border-radius: 999px; margin: 2px 2px 0 0; border: 1px solid var(--border); }
+.tag-green, .tag-yellow, .tag-orange, .tag-red, .tag-gray { color: var(--text2); background: rgba(255,255,255,0.04); }
+.supp-head, .log-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.supp-name { font-family: var(--font-head); font-size: 15px; font-weight: 700; }
+.supp-dose, .meal-meta { font-size: 11px; color: var(--accent2); }
+.supp-time, .shop-note { font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+.supp-ev { display: none; font-size: 12px; color: var(--text2); line-height: 1.6; margin-top: 8px; }
+.supp-ev-toggle { font-size: 11px; color: var(--accent2); cursor: pointer; margin-top: 6px; display: inline-block; }
 .ex-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
 .ex-row:last-child { border-bottom: none; }
 .ex-name { font-size: 13px; color: var(--text); }
-.ex-sets { font-size: 11px; color: var(--accent); font-family: var(--font-mono); }
-.ex-kg { font-size: 11px; color: var(--text3); font-family: var(--font-mono); }
-.subtle { font-size: 12px; color: var(--text2); line-height: 1.7; }
-.split-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.macro-chip { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 12px; }
+.ex-sets { font-size: 11px; color: var(--accent2); }
+.ex-kg { font-size: 11px; color: var(--text3); }
+.macro-chip, .meal-plan, .recipe-card {
+  background: var(--surface2);
+  border: 1px solid rgba(192,163,255,0.1);
+  border-radius: var(--r);
+  padding: 12px;
+}
 .macro-chip strong { display: block; font-family: var(--font-head); font-size: 18px; margin-bottom: 4px; }
 .macro-chip span { font-size: 11px; color: var(--text3); }
-.meal-suggestion { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 12px; margin-bottom: 10px; }
-.meal-suggestion h3 { font-family: var(--font-head); font-size: 14px; margin-bottom: 6px; }
-.meal-suggestion p { font-size: 12px; color: var(--text2); line-height: 1.6; }
-.meal-meta { font-size: 11px; color: var(--accent); margin-bottom: 8px; }
-.shop-line { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
-.shop-line:last-child { border-bottom: none; }
-.shop-item { font-size: 13px; color: var(--text); }
-.shop-note { font-size: 11px; color: var(--text3); }
+.meal-plan + .meal-plan, .recipe-card + .recipe-card { margin-top: 10px; }
+.meal-plan h3, .recipe-card h3 { font-family: var(--font-head); font-size: 14px; margin-bottom: 6px; }
+.meal-items { margin-top: 8px; font-size: 12px; color: var(--text2); line-height: 1.65; }
+.meal-items div { display: flex; justify-content: space-between; gap: 10px; }
 .fade-in { animation: fadeIn 0.2s ease; }
-@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
-@media (max-width: 560px) {
-  .split-two, .triple-grid { grid-template-columns: 1fr; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (max-width: 640px) {
+  .split-two, .triple-grid, .metric-grid { grid-template-columns: 1fr; }
+  .week-grid { grid-template-columns: repeat(7, minmax(0,1fr)); }
 }
 </style>
 </head>
 <body>
+<div class="bg-photo" id="bg-photo"></div>
+<div class="bg-overlay"></div>
 
 <div class="topbar">
-  <div class="topbar-title"><span class="today-ring"></span>OKComputer</div>
+  <div class="topbar-title">tracker</div>
   <div class="topbar-date" id="topbar-date"></div>
 </div>
 
@@ -144,41 +286,15 @@ select.input-field { cursor: pointer; }
       <h2>Tagescheck</h2>
       <p id="daily-subtitle">Lade...</p>
     </div>
-
     <div class="metric-grid">
-      <div class="metric-card">
-        <div class="metric-lbl">Heute</div>
-        <div class="metric-val" id="m-today">0<span class="metric-unit">%</span></div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-lbl">Supplements</div>
-        <div class="metric-val" id="m-supp">0<span class="metric-unit">%</span></div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-lbl">Wasser</div>
-        <div class="metric-val" id="m-water">0<span class="metric-unit">ml</span></div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-lbl">Streak</div>
-        <div class="metric-val" id="m-streak">0<span class="metric-unit">d</span></div>
-      </div>
+      <div class="metric-card"><div class="metric-lbl">Heute</div><div class="metric-val" id="m-today">0<span class="metric-unit">%</span></div></div>
+      <div class="metric-card"><div class="metric-lbl">Supplements</div><div class="metric-val" id="m-supp">0<span class="metric-unit">%</span></div></div>
+      <div class="metric-card"><div class="metric-lbl">Wasser</div><div class="metric-val" id="m-water">0<span class="metric-unit">ml</span></div></div>
+      <div class="metric-card"><div class="metric-lbl">Streak</div><div class="metric-val" id="m-streak">0<span class="metric-unit">d</span></div></div>
     </div>
-
-    <div class="card">
-      <div class="card-label">Morgenroutine</div>
-      <div id="list-morning"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-label">Tagsüber</div>
-      <div id="list-day"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-label">Abend</div>
-      <div id="list-evening"></div>
-    </div>
-
+    <div class="card"><div class="card-label">Morgenroutine</div><div id="list-morning"></div></div>
+    <div class="card"><div class="card-label">Tagsüber</div><div id="list-day"></div></div>
+    <div class="card"><div class="card-label">Abend</div><div id="list-evening"></div></div>
     <div class="card">
       <div class="card-label">Wasser-Tracker</div>
       <div id="water-label" class="subtle">0 / 3000 ml</div>
@@ -186,14 +302,10 @@ select.input-field { cursor: pointer; }
       <div class="btn-group">
         <button class="btn" onclick="addWater(250)">+250ml</button>
         <button class="btn" onclick="addWater(500)">+500ml</button>
-        <button class="btn" onclick="addWater(-250)">−250ml</button>
+        <button class="btn" onclick="addWater(-250)">-250ml</button>
       </div>
     </div>
-
-    <div class="card">
-      <div class="card-label">Diese Woche</div>
-      <div id="week-grid" class="week-grid"></div>
-    </div>
+    <div class="card"><div class="card-label">Diese Woche</div><div id="week-grid" class="week-grid"></div></div>
   </div>
 
   <div id="sec-training" class="section fade-in">
@@ -201,23 +313,16 @@ select.input-field { cursor: pointer; }
       <h2>Training</h2>
       <p>4x Kraft plus 3x20 Min Zone 2 auf dem Fahrrad</p>
     </div>
-
     <div class="card">
       <div class="card-label">Hevy Import</div>
-      <div class="subtle" style="margin-bottom:10px">Lokaler Import von Hevy Exporten. CSV oder JSON auswählen, dann wird der letzte Import unten im Log gespeichert. Falls ein Export anders aufgebaut ist, bleibt der Trainingstab trotzdem nutzbar.</div>
+      <div class="subtle" style="margin-bottom:10px">CSV oder JSON auswählen. Wenn das Exportformat abweicht, bleibt der Tab trotzdem voll nutzbar.</div>
       <div class="btn-group">
         <label class="btn btn-accent" for="hevy-file">Hevy Datei wählen</label>
         <input id="hevy-file" type="file" accept=".csv,.json" style="display:none" onchange="importHevyFile(event)">
       </div>
       <div id="hevy-status" class="subtle">Noch kein Hevy-Import geladen.</div>
     </div>
-
-    <div class="card">
-      <div class="card-label">Cardio</div>
-      <div class="subtle" style="margin-bottom:10px">Ziel: 3 Sessions pro Woche, jeweils 20 Minuten Zone 2 auf dem Fahrrad.</div>
-      <div id="cardio-list"></div>
-    </div>
-
+    <div class="card"><div class="card-label">Cardio</div><div class="subtle" style="margin-bottom:10px">Ziel: 3 Sessions pro Woche, je 20 Minuten Zone 2 auf dem Fahrrad.</div><div id="cardio-list"></div></div>
     <div class="card">
       <div class="card-label">Training loggen</div>
       <div class="input-row" style="flex-direction:column; align-items:stretch; gap:8px">
@@ -230,122 +335,85 @@ select.input-field { cursor: pointer; }
           <option>Zone 2 Bike (Samstag)</option>
           <option>Off / Mobility (Sonntag)</option>
         </select>
-        <input type="text" class="input-field" id="train-note" placeholder="Notiz: PRs, Energie, Knie, Bike-Puls ..." />
+        <input type="text" class="input-field" id="train-note" placeholder="Notiz: Leistung, Energie, Knie, Bike-Puls ...">
       </div>
-      <button class="btn btn-accent" style="margin-top:10px; width:100%" onclick="saveTraining()">Training speichern ✓</button>
+      <button class="btn btn-accent" style="margin-top:10px; width:100%" onclick="saveTraining()">Training speichern</button>
     </div>
-
     <div class="split-two">
-      <div class="card">
-        <div class="card-label">Push A</div>
-        <div id="ex-push-a"></div>
-      </div>
-      <div class="card">
-        <div class="card-label">Pull A</div>
-        <div id="ex-pull-a"></div>
-      </div>
-      <div class="card">
-        <div class="card-label">Push B</div>
-        <div id="ex-push-b"></div>
-      </div>
-      <div class="card">
-        <div class="card-label">Pull B</div>
-        <div id="ex-pull-b"></div>
-      </div>
+      <div class="card"><div class="card-label">Push A</div><div id="ex-push-a"></div></div>
+      <div class="card"><div class="card-label">Pull A</div><div id="ex-pull-a"></div></div>
+      <div class="card"><div class="card-label">Push B</div><div id="ex-push-b"></div></div>
+      <div class="card"><div class="card-label">Pull B</div><div id="ex-pull-b"></div></div>
     </div>
-
-    <div class="card">
-      <div class="card-label">Training-Log</div>
-      <div id="training-log"></div>
-    </div>
+    <div class="card"><div class="card-label">Training-Log</div><div id="training-log"></div></div>
   </div>
 
   <div id="sec-nutrition" class="section fade-in">
     <div class="sec-header">
       <h2>Ernährung</h2>
-      <p>Fette auf 50g, Carbs deutlich höher, Carb Cycle mit Laden und Entladen</p>
+      <p>Täglicher Plan mit passenden Mengen aus deinem Ernährungsplan.</p>
     </div>
-
     <div class="metric-grid">
       <div class="metric-card">
         <div class="metric-lbl">Kalorien</div>
-        <div class="metric-val" id="m-kcal">–</div>
+        <div class="metric-val" id="m-kcal">0<span class="metric-unit"> / 0</span></div>
+        <div class="metric-sub" id="m-kcal-sub">Intake / Ziel</div>
       </div>
       <div class="metric-card">
         <div class="metric-lbl">Protein</div>
-        <div class="metric-val" id="m-prot">0<span class="metric-unit">g</span></div>
+        <div class="metric-val" id="m-prot">0<span class="metric-unit"> / 0g</span></div>
+        <div class="metric-sub" id="m-prot-sub">Intake / Ziel</div>
       </div>
       <div class="metric-card">
         <div class="metric-lbl">Carbs</div>
-        <div class="metric-val" id="m-carb">0<span class="metric-unit">g</span></div>
+        <div class="metric-val" id="m-carb">0<span class="metric-unit"> / 0g</span></div>
+        <div class="metric-sub" id="m-carb-sub">Intake / Ziel</div>
       </div>
       <div class="metric-card">
         <div class="metric-lbl">Fett</div>
-        <div class="metric-val" id="m-fat">0<span class="metric-unit">g</span></div>
+        <div class="metric-val" id="m-fat">0<span class="metric-unit"> / 0g</span></div>
+        <div class="metric-sub" id="m-fat-sub">Intake / Ziel</div>
       </div>
     </div>
-
     <div class="card">
-      <div class="card-label">Carb Cycle</div>
+      <div class="card-label">Tag wählen</div>
       <div class="btn-group">
-        <button class="btn btn-accent" onclick="setNutritionMode('load')">Ladetag</button>
-        <button class="btn" onclick="setNutritionMode('train')">Trainingstag</button>
-        <button class="btn" onclick="setNutritionMode('unload')">Entladetag</button>
+        <button class="btn mode-btn" id="mode-load" onclick="setNutritionMode('load')">Ladetag</button>
+        <button class="btn mode-btn" id="mode-train" onclick="setNutritionMode('train')">Trainingstag</button>
+        <button class="btn mode-btn" id="mode-unload" onclick="setNutritionMode('unload')">Entladetag</button>
       </div>
-      <div id="mode-summary" class="subtle"></div>
+      <div id="mode-summary" class="subtle" style="margin-top:10px"></div>
       <div class="triple-grid" style="margin-top:12px">
         <div class="macro-chip"><strong id="target-kcal">0 kcal</strong><span>Zielkalorien</span></div>
-        <div class="macro-chip"><strong id="target-carb">0 g</strong><span>Kohlenhydrate</span></div>
-        <div class="macro-chip"><strong id="target-fat">50 g</strong><span>Fette</span></div>
+        <div class="macro-chip"><strong id="target-carb">0 g</strong><span>Ziel Carbs</span></div>
+        <div class="macro-chip"><strong id="target-fat">0 g</strong><span>Ziel Fett</span></div>
       </div>
     </div>
-
     <div class="card">
-      <div class="card-label">Mahlzeiten</div>
-      <div id="meal-list"></div>
+      <div class="card-label">Heute vorgeschlagener Plan</div>
+      <div id="daily-plan-title" class="subtle" style="margin-bottom:10px"></div>
+      <div id="daily-plan"></div>
     </div>
-
     <div class="card">
-      <div class="card-label">Makros eintragen</div>
-      <div class="input-row">
-        <span class="input-lbl">Protein (g)</span>
-        <input type="number" class="input-field" id="prot-in" placeholder="0" min="0" style="max-width:120px">
-      </div>
-      <div class="input-row">
-        <span class="input-lbl">Kohlenhydrate (g)</span>
-        <input type="number" class="input-field" id="carb-in" placeholder="0" min="0" style="max-width:120px">
-      </div>
-      <div class="input-row">
-        <span class="input-lbl">Fette (g)</span>
-        <input type="number" class="input-field" id="fat-in" placeholder="0" min="0" style="max-width:120px">
-      </div>
-      <button class="btn btn-accent" style="width:100%; margin-top:6px" onclick="saveMacros()">Eintragen ✓</button>
+      <div class="card-label">Makros manuell eintragen</div>
+      <div class="input-row"><span class="input-lbl">Protein (g)</span><input type="number" class="input-field" id="prot-in" min="0" placeholder="0" style="max-width:120px"></div>
+      <div class="input-row"><span class="input-lbl">Carbs (g)</span><input type="number" class="input-field" id="carb-in" min="0" placeholder="0" style="max-width:120px"></div>
+      <div class="input-row"><span class="input-lbl">Fette (g)</span><input type="number" class="input-field" id="fat-in" min="0" placeholder="0" style="max-width:120px"></div>
+      <button class="btn btn-accent" style="width:100%; margin-top:6px" onclick="saveMacros()">Eintragen</button>
       <div id="macro-progress" class="subtle" style="margin-top:12px"></div>
-      <div class="prog-wrap"><div class="prog-bar" id="prot-bar" style="width:0%"></div></div>
+      <div class="prog-wrap"><div class="prog-bar" id="macro-bar" style="width:0%"></div></div>
     </div>
   </div>
 
   <div id="sec-food" class="section fade-in">
     <div class="sec-header">
       <h2>Food</h2>
-      <p>Makro-passende Meal-Ideen plus Einkaufsliste</p>
+      <p>Einkaufsliste und schnelle Preischecks.</p>
     </div>
-
-    <div class="card">
-      <div class="card-label">Mahlzeiten-Vorschläge</div>
-      <div id="meal-suggestions"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-label">Einkaufsliste</div>
-      <div id="shopping-list"></div>
-    </div>
-
+    <div class="card"><div class="card-label">Einkaufsliste</div><div id="shopping-list"></div></div>
     <div class="card">
       <div class="card-label">Angebote & Preisvergleich</div>
-      <div class="offer-row">
-        <div class="subtle">Live-Angebote lassen sich in dieser lokalen Datei nicht automatisch aus Shops ziehen. Die Buttons öffnen direkte Suchanfragen für schnelle Preischecks.</div>
-      </div>
+      <div class="subtle">Live-Angebote lassen sich in dieser lokalen Datei nicht automatisch ziehen. Die Buttons öffnen direkte Suchanfragen für Whey und Reispudding.</div>
       <div class="btn-group" style="margin-top:10px">
         <a class="btn" target="_blank" href="https://www.idealo.de/preisvergleich/MainSearchProductCategory.html?q=whey+protein">Whey bei Idealo</a>
         <a class="btn" target="_blank" href="https://www.idealo.de/preisvergleich/MainSearchProductCategory.html?q=reispudding">Reispudding bei Idealo</a>
@@ -358,18 +426,10 @@ select.input-field { cursor: pointer; }
   <div id="sec-supps" class="section fade-in">
     <div class="sec-header">
       <h2>Supplemente</h2>
-      <p>Nach Uhrzeit sortiert, inklusive L-Glutamin</p>
+      <p>Nach Uhrzeit sortiert, inklusive L-Glutamin.</p>
     </div>
-
-    <div class="card">
-      <div class="card-label">Dein Stack</div>
-      <div id="supp-list"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-label">Neue Empfehlungen</div>
-      <div id="new-supp-list"></div>
-    </div>
+    <div class="card"><div class="card-label">Dein Stack</div><div id="supp-list"></div></div>
+    <div class="card"><div class="card-label">Neue Empfehlungen</div><div id="new-supp-list"></div></div>
   </div>
 </div>
 
@@ -382,7 +442,7 @@ select.input-field { cursor: pointer; }
 </nav>
 
 <script>
-const SK = 'okcomputer_v3';
+const SK = 'okcomputer_v4';
 let S = {};
 function load() { try { S = JSON.parse(localStorage.getItem(SK) || '{}'); } catch (e) { S = {}; } }
 function save() { try { localStorage.setItem(SK, JSON.stringify(S)); } catch (e) {} }
@@ -403,23 +463,23 @@ const MORNING = [
   { id: 'ash', label: 'Ashwagandha KSM-66', badge: '06:30 · 600mg' },
   { id: 'omega', label: 'Omega-3 + Vitamin A + Zink', badge: '07:00 · mit Frühstück' },
   { id: 'vit', label: 'Vitamin B-Komplex + Vitamin C', badge: '07:00 · mit Frühstück' },
-  { id: 'mahl1', label: 'Frühstück High Carb', badge: '07:00 · Oats + Whey + Banane' },
+  { id: 'mahl1', label: 'Frühstück', badge: '07:00 · Makroplan' },
   { id: 'w1', label: 'Wasser 500ml', badge: '07:15' }
 ];
 const DAYTIME = [
-  { id: 'snack', label: 'Snack + Uridin + Citicolin', badge: '10:30 · Quark + Rice Cereal' },
-  { id: 'mahl2', label: 'Mittagessen', badge: '13:00 · Hähnchen + Reis' },
-  { id: 'nac', label: 'NAC 600mg', badge: '13:00 · mit Mittag' },
+  { id: 'snack', label: 'Snack + Uridin + Citicolin', badge: '10:30' },
+  { id: 'mahl2', label: 'Mittagessen', badge: '13:00' },
+  { id: 'nac', label: 'NAC 600mg', badge: '13:00' },
   { id: 'cardio', label: 'Zone 2 Bike 20 Min', badge: '3x pro Woche' },
   { id: 'w2', label: 'Wasser 500ml', badge: '14:00' },
   { id: 'w3', label: 'Wasser 500ml', badge: '16:00' }
 ];
 const EVENING = [
-  { id: 'mahl3', label: 'Abendessen', badge: '18:00 · Carb Cycle passend' },
+  { id: 'mahl3', label: 'Abendessen', badge: '18:30 · Makroplan' },
   { id: 'glutamin', label: 'L-Glutamin', badge: '20:30 · 5g' },
   { id: 'mag', label: 'Magnesium Glycinat 350mg', badge: '21:30' },
-  { id: 'glycin', label: 'Glycin 3g', badge: '21:30 · vor Schlaf' },
-  { id: 'sleep', label: 'Schlaf ≥7h', badge: '22:00 Ziel' }
+  { id: 'glycin', label: 'Glycin 3g', badge: '21:30' },
+  { id: 'sleep', label: 'Schlaf >=7h', badge: '22:00 Ziel' }
 ];
 const SUPP_IDS = ['ash', 'omega', 'vit', 'snack', 'nac', 'glutamin', 'mag', 'glycin'];
 
@@ -428,13 +488,11 @@ const EXERCISES = {
     { name: 'Schrägbank (KH)', sets: '3x6', kg: '25kg', note: 'sauberer Stretch' },
     { name: 'Butterfly', sets: '3x8', kg: '70kg', note: 'Peak halten' },
     { name: 'Seitheben', sets: '3x8', kg: '12kg', note: 'Kontrolle vor Load' },
-    { name: 'Trizeps Kabel', sets: '3x8', kg: '75kg', note: 'Ellbogen stabil' },
-    { name: 'Beinstrecker', sets: '3x8', kg: '80kg', note: 'kontrolliert' }
+    { name: 'Trizeps Kabel', sets: '3x8', kg: '75kg', note: 'Ellbogen stabil' }
   ],
   'pull-a': [
     { name: 'Latzug breit', sets: '3x6', kg: '95kg', note: 'Brust hoch' },
     { name: 'Rudern Kabel', sets: '3x6', kg: '95kg', note: 'eng führen' },
-    { name: 'Kelso Shrugs', sets: '3x10', kg: '95kg', note: 'Scaps runter' },
     { name: 'Preacher Curls', sets: '3x8', kg: '65kg', note: 'kein Schwung' },
     { name: 'Leg Curl', sets: '3x10', kg: '55kg', note: 'exzentrisch' }
   ],
@@ -442,112 +500,180 @@ const EXERCISES = {
     { name: 'Flachbank (KH)', sets: '3x8', kg: '22kg', note: 'volle ROM' },
     { name: 'Kabelfly', sets: '3x10', kg: '15kg', note: 'Squeeze oben' },
     { name: 'Schulterdrücken', sets: '3x8', kg: '20kg', note: 'kontrolliert' },
-    { name: 'Face Pulls', sets: '3x12', kg: '25kg', note: 'hintere Schulter' },
-    { name: 'Trizeps Overhead', sets: '3x10', kg: '20kg', note: 'ruhig arbeiten' }
+    { name: 'Face Pulls', sets: '3x12', kg: '25kg', note: 'hintere Schulter' }
   ],
   'pull-b': [
     { name: 'Latzug eng', sets: '3x8', kg: '85kg', note: 'zur Hüfte ziehen' },
     { name: 'Seated Row', sets: '3x8', kg: '90kg', note: 'Brust raus' },
     { name: 'Reverse Fly', sets: '3x12', kg: '10kg', note: 'hintere Schulter' },
-    { name: 'Bizeps Kabel', sets: '3x10', kg: '25kg', note: 'strikt' },
     { name: 'Core Crunch', sets: '3x12', kg: '70kg', note: 'ruhig' }
   ]
 };
 
 const NUTRITION_MODES = {
-  load: { label: 'Ladetag', kcal: 3050, protein: 190, carbs: 430, fat: 50, note: 'Vor hartem Training oder Refeed. Carbs maximal hoch, Fett bewusst niedrig.' },
-  train: { label: 'Trainingstag', kcal: 2750, protein: 185, carbs: 360, fat: 50, note: 'Standard-High-Carb Tag für Push/Pull + gute Performance.' },
-  unload: { label: 'Entladetag', kcal: 2250, protein: 190, carbs: 190, fat: 50, note: 'Restday oder leichtes Cardio. Carbs klar runter, Protein stabil.' }
+  load: { label: 'Ladetag', note: 'Carbs sehr hoch, Fett bei 50g gedeckelt.' },
+  train: { label: 'Trainingstag', note: 'Hohe Carbs rund um Leistung und Regeneration.' },
+  unload: { label: 'Entladetag', note: 'Weniger Carbs, Protein stabil, Fett weiter kontrolliert.' }
 };
 
-const MEALS = {
-  load: [
-    { id: 'm1', name: 'Frühstück', time: '07:00', kcal: 760, p: 48, k: 118, f: 12, desc: 'Oats + Whey + Banane + Honig + Reispudding' },
-    { id: 'm2', name: 'Snack', time: '10:30', kcal: 430, p: 35, k: 62, f: 5, desc: 'Magerquark + Cornflakes/Rice Cereal + Beeren' },
-    { id: 'm3', name: 'Mittagessen', time: '13:00', kcal: 780, p: 55, k: 120, f: 10, desc: 'Hähnchen + Jasminreis + Gemüse + wenig Öl' },
-    { id: 'm4', name: 'Pre/Post', time: '16:30', kcal: 420, p: 32, k: 70, f: 3, desc: 'Whey + Banane + Reiswaffeln' },
-    { id: 'm5', name: 'Abendessen', time: '19:00', kcal: 620, p: 42, k: 60, f: 20, desc: 'Wraps oder Sushi Bowl, Fett im Rahmen halten' }
-  ],
+const PLAN_LIBRARY = {
   train: [
-    { id: 'm1', name: 'Frühstück', time: '07:00', kcal: 680, p: 45, k: 95, f: 13, desc: 'Oats + Whey + Banane + Reispudding' },
-    { id: 'm2', name: 'Snack', time: '10:30', kcal: 360, p: 32, k: 42, f: 5, desc: 'Skyr + Beeren + Rice Cereal' },
-    { id: 'm3', name: 'Mittagessen', time: '13:00', kcal: 720, p: 55, k: 95, f: 12, desc: 'Hähnchen + Reis + Gemüse' },
-    { id: 'm4', name: 'Post Workout', time: '17:00', kcal: 360, p: 30, k: 55, f: 3, desc: 'Whey + Banane + Reiswaffeln' },
-    { id: 'm5', name: 'Abendessen', time: '19:00', kcal: 520, p: 40, k: 48, f: 17, desc: 'Kartoffeln oder Reis + mageres Protein' }
+    {
+      title: 'Trainingstag A',
+      totals: { kcal: 2680, protein: 185, carbs: 340, fat: 50 },
+      meals: [
+        { title: 'Frühstück', time: '07:00', macros: '45P / 95C / 12F', items: [['Haferflocken', '100g'], ['Whey', '35g'], ['Banane', '1 Stück'], ['Reispudding', '70g'], ['Mandelmilch', '250ml']] },
+        { title: 'Snack', time: '10:30', macros: '30P / 40C / 4F', items: [['Magerquark', '250g'], ['Beeren', '150g'], ['Honig', '15g'], ['Rice Cereal', '40g']] },
+        { title: 'Mittagessen', time: '13:00', macros: '55P / 92C / 14F', items: [['Hähnchenbrust', '220g'], ['Reis gekocht', '260g'], ['Brokkoli', '200g'], ['Olivenöl', '10g']] },
+        { title: 'Pre/Post Workout', time: '16:30', macros: '25P / 60C / 4F', items: [['Whey', '30g'], ['Reiswaffeln', '6 Stück'], ['Banane', '1 Stück']] },
+        { title: 'Abendessen', time: '20:00', macros: '30P / 53C / 16F', items: [['Mageres Rinderhack', '150g'], ['Süßkartoffel', '250g'], ['Spinat', '150g'], ['Wrap', '1 Stück']] }
+      ]
+    },
+    {
+      title: 'Trainingstag B',
+      totals: { kcal: 2720, protein: 188, carbs: 350, fat: 50 },
+      meals: [
+        { title: 'Frühstück', time: '07:00', macros: '43P / 92C / 13F', items: [['Haferflocken', '90g'], ['Whey', '40g'], ['Banane', '1 Stück'], ['Toast', '3 Scheiben'], ['Erdnussbutter', '10g']] },
+        { title: 'Snack', time: '10:30', macros: '29P / 38C / 5F', items: [['Magerquark', '250g'], ['Beeren', '100g'], ['Honig', '20g'], ['Leinsamen', '10g']] },
+        { title: 'Mittagessen', time: '13:00', macros: '56P / 100C / 14F', items: [['Hähnchenbrust', '200g'], ['Basmatireis gekocht', '280g'], ['Brokkoli', '200g'], ['Olivenöl', '10g']] },
+        { title: 'Pre Workout', time: '16:30', macros: '27P / 58C / 4F', items: [['Putenbrust', '100g'], ['Vollkorntoast', '4 Scheiben'], ['Honig', '15g']] },
+        { title: 'Abendessen', time: '20:00', macros: '33P / 62C / 14F', items: [['Mageres Rinderhack', '160g'], ['Süßkartoffel', '300g'], ['Spinat', '150g']] }
+      ]
+    },
+    {
+      title: 'Trainingstag C',
+      totals: { kcal: 2650, protein: 182, carbs: 332, fat: 50 },
+      meals: [
+        { title: 'Frühstück', time: '07:00', macros: '41P / 85C / 14F', items: [['Haferflocken', '80g'], ['Whey', '30g'], ['Banane', '1 Stück'], ['Erdnussbutter', '20g'], ['Mandelmilch', '200ml']] },
+        { title: 'Snack', time: '10:30', macros: '29P / 31C / 5F', items: [['Magerquark', '250g'], ['Beeren', '100g'], ['Honig', '10g'], ['Leinsamen', '10g']] },
+        { title: 'Mittagessen', time: '13:00', macros: '56P / 85C / 15F', items: [['Hähnchenbrust', '200g'], ['Reis gekocht', '240g'], ['Brokkoli', '200g'], ['Olivenöl', '10g']] },
+        { title: 'Pre/Post Workout', time: '16:30', macros: '26P / 72C / 3F', items: [['Whey', '30g'], ['Reispudding', '80g'], ['Banane', '1 Stück']] },
+        { title: 'Abendessen', time: '20:00', macros: '30P / 59C / 13F', items: [['Putenbrust', '180g'], ['Kartoffeln', '350g'], ['Spinat', '150g'], ['Wrap', '1 Stück']] }
+      ]
+    }
+  ],
+  load: [
+    {
+      title: 'Ladetag A',
+      totals: { kcal: 2970, protein: 185, carbs: 405, fat: 50 },
+      meals: [
+        { title: 'Frühstück', time: '07:00', macros: '46P / 118C / 10F', items: [['Haferflocken', '110g'], ['Whey', '40g'], ['Banane', '1 Stück'], ['Reispudding', '100g'], ['Honig', '20g']] },
+        { title: 'Snack', time: '10:30', macros: '30P / 58C / 4F', items: [['Magerquark', '250g'], ['Rice Cereal', '70g'], ['Beeren', '100g'], ['Honig', '15g']] },
+        { title: 'Mittagessen', time: '13:00', macros: '55P / 122C / 13F', items: [['Hähnchenbrust', '220g'], ['Reis gekocht', '340g'], ['Brokkoli', '200g'], ['Olivenöl', '10g']] },
+        { title: 'Pre/Post Workout', time: '16:30', macros: '24P / 72C / 3F', items: [['Whey', '30g'], ['Reiswaffeln', '8 Stück'], ['Banane', '1 Stück']] },
+        { title: 'Abendessen', time: '20:00', macros: '30P / 35C / 20F', items: [['Rinderhack mager', '180g'], ['Süßkartoffel', '180g'], ['Spinat', '150g'], ['Wrap', '1 Stück']] }
+      ]
+    },
+    {
+      title: 'Ladetag B',
+      totals: { kcal: 3010, protein: 188, carbs: 415, fat: 50 },
+      meals: [
+        { title: 'Frühstück', time: '07:00', macros: '44P / 112C / 11F', items: [['Haferflocken', '100g'], ['Whey', '35g'], ['Toast', '4 Scheiben'], ['Banane', '1 Stück'], ['Marmelade', '25g']] },
+        { title: 'Snack', time: '10:30', macros: '31P / 65C / 4F', items: [['Skyr', '300g'], ['Rice Cereal', '80g'], ['Beeren', '100g']] },
+        { title: 'Mittagessen', time: '13:00', macros: '57P / 130C / 13F', items: [['Hähnchenbrust', '220g'], ['Basmatireis gekocht', '360g'], ['Brokkoli', '200g'], ['Olivenöl', '10g']] },
+        { title: 'Pre Workout', time: '16:30', macros: '23P / 74C / 3F', items: [['Whey', '30g'], ['Reispudding', '90g'], ['Banane', '1 Stück']] },
+        { title: 'Abendessen', time: '20:00', macros: '33P / 34C / 19F', items: [['Putenbrust', '180g'], ['Kartoffeln', '260g'], ['Avocado', '70g'], ['Spinat', '150g']] }
+      ]
+    },
+    {
+      title: 'Ladetag C',
+      totals: { kcal: 2940, protein: 182, carbs: 398, fat: 50 },
+      meals: [
+        { title: 'Frühstück', time: '07:00', macros: '41P / 108C / 12F', items: [['Haferflocken', '95g'], ['Whey', '30g'], ['Banane', '1 Stück'], ['Reispudding', '90g'], ['Erdnussbutter', '12g']] },
+        { title: 'Snack', time: '10:30', macros: '29P / 60C / 5F', items: [['Magerquark', '250g'], ['Beeren', '100g'], ['Cornflakes', '70g'], ['Honig', '15g']] },
+        { title: 'Mittagessen', time: '13:00', macros: '56P / 120C / 14F', items: [['Hähnchenbrust', '200g'], ['Reis gekocht', '330g'], ['Brokkoli', '200g'], ['Olivenöl', '10g']] },
+        { title: 'Pre/Post Workout', time: '16:30', macros: '26P / 72C / 3F', items: [['Whey', '30g'], ['Reiswaffeln', '8 Stück'], ['Banane', '1 Stück']] },
+        { title: 'Abendessen', time: '20:00', macros: '30P / 38C / 16F', items: [['Rinderhack mager', '160g'], ['Süßkartoffel', '220g'], ['Spinat', '150g'], ['Wrap', '1 Stück']] }
+      ]
+    }
   ],
   unload: [
-    { id: 'm1', name: 'Frühstück', time: '07:00', kcal: 520, p: 45, k: 45, f: 14, desc: 'Oats kleiner, dafür mehr Eiweiß' },
-    { id: 'm2', name: 'Snack', time: '10:30', kcal: 300, p: 35, k: 20, f: 7, desc: 'Skyr + Beeren + Nüsse klein' },
-    { id: 'm3', name: 'Mittagessen', time: '13:00', kcal: 620, p: 55, k: 55, f: 15, desc: 'Hähnchen + Reis reduziert + Gemüse' },
-    { id: 'm4', name: 'Snack', time: '16:30', kcal: 250, p: 25, k: 20, f: 5, desc: 'Whey + Obst' },
-    { id: 'm5', name: 'Abendessen', time: '19:00', kcal: 560, p: 42, k: 40, f: 18, desc: 'Lachs oder Beef + Kartoffeln + Salat' }
-  ]
-};
-
-const FOOD_SUGGESTIONS = {
-  breakfast: [
-    'Haferflocken, Whey, Banane, Reispudding, Zimt',
-    'Cream of Rice mit Whey und TK-Beeren',
-    'Toast + Marmelade + Whey Shake an Ladetagen'
-  ],
-  lunch: [
-    'Hähnchen, Jasminreis, Brokkoli, Sweet Chili light',
-    'Putenhack, Kartoffeln, Erbsen, Paprika',
-    'Sushi Bowl mit Thunfisch, Reis, Gurke, Mango'
-  ],
-  dinner: [
-    'Wraps mit Hähnchen und Reis an Trainingstagen',
-    'Lachs, Kartoffeln und Salat an Entladetagen',
-    'Reispfanne mit magerem Rind und Gemüse'
-  ],
-  snacks: [
-    'Skyr oder Magerquark mit Rice Cereal',
-    'Whey Shake + Reiswaffeln',
-    'Reispudding + Whey für schnelle Carbs'
+    {
+      title: 'Entladetag A',
+      totals: { kcal: 2250, protein: 185, carbs: 190, fat: 50 },
+      meals: [
+        { title: 'Frühstück', time: '07:00', macros: '44P / 45C / 13F', items: [['Haferflocken', '50g'], ['Whey', '35g'], ['Banane', '1 Stück'], ['Erdnussbutter', '15g']] },
+        { title: 'Snack', time: '10:30', macros: '33P / 18C / 9F', items: [['Magerquark', '250g'], ['Beeren', '100g'], ['Nuss-Mix', '20g']] },
+        { title: 'Mittagessen', time: '13:00', macros: '56P / 55C / 15F', items: [['Hähnchenbrust', '200g'], ['Reis gekocht', '150g'], ['Brokkoli', '200g'], ['Olivenöl', '10g']] },
+        { title: 'Snack', time: '16:30', macros: '22P / 18C / 4F', items: [['Whey', '30g'], ['Apfel', '1 Stück']] },
+        { title: 'Abendessen', time: '20:00', macros: '30P / 54C / 9F', items: [['Putenbrust', '180g'], ['Kartoffeln', '320g'], ['Spinat', '150g']] }
+      ]
+    },
+    {
+      title: 'Entladetag B',
+      totals: { kcal: 2290, protein: 188, carbs: 198, fat: 50 },
+      meals: [
+        { title: 'Frühstück', time: '07:00', macros: '42P / 48C / 12F', items: [['Haferflocken', '60g'], ['Whey', '35g'], ['Banane', '1 Stück'], ['Mandelmilch', '250ml']] },
+        { title: 'Snack', time: '10:30', macros: '32P / 22C / 8F', items: [['Skyr', '300g'], ['Beeren', '150g'], ['Leinsamen', '10g']] },
+        { title: 'Mittagessen', time: '13:00', macros: '55P / 60C / 15F', items: [['Hähnchenbrust', '220g'], ['Reis gekocht', '170g'], ['Brokkoli', '200g'], ['Olivenöl', '10g']] },
+        { title: 'Snack', time: '16:30', macros: '24P / 20C / 3F', items: [['Whey', '30g'], ['Reiswaffeln', '3 Stück'], ['Apfel', '1 Stück']] },
+        { title: 'Abendessen', time: '20:00', macros: '35P / 48C / 12F', items: [['Mageres Rinderhack', '170g'], ['Süßkartoffel', '220g'], ['Spinat', '150g']] }
+      ]
+    },
+    {
+      title: 'Entladetag C',
+      totals: { kcal: 2210, protein: 182, carbs: 185, fat: 50 },
+      meals: [
+        { title: 'Frühstück', time: '07:00', macros: '41P / 42C / 14F', items: [['Haferflocken', '50g'], ['Whey', '30g'], ['Banane', '1 Stück'], ['Erdnussbutter', '20g']] },
+        { title: 'Snack', time: '10:30', macros: '29P / 20C / 7F', items: [['Magerquark', '250g'], ['Beeren', '100g'], ['Nüsse', '15g']] },
+        { title: 'Mittagessen', time: '13:00', macros: '56P / 52C / 15F', items: [['Hähnchenbrust', '200g'], ['Reis gekocht', '140g'], ['Brokkoli', '200g'], ['Olivenöl', '10g']] },
+        { title: 'Snack', time: '16:30', macros: '23P / 17C / 4F', items: [['Whey', '30g'], ['Apfel', '1 Stück']] },
+        { title: 'Abendessen', time: '20:00', macros: '33P / 54C / 10F', items: [['Putenbrust', '180g'], ['Kartoffeln', '330g'], ['Spinat', '150g']] }
+      ]
+    }
   ]
 };
 
 const SHOPPING_LIST = [
-  { item: 'Whey', note: '2kg Sack oder 900g Dose, Vanille/Neutral für Frühstück und Reispudding' },
-  { item: 'Reispudding / Cream of Rice', note: 'für High-Carb Frühstück und Pre/Post Workout' },
-  { item: 'Haferflocken', note: 'Basis für Frühstück' },
-  { item: 'Jasminreis', note: 'Haupt-Carb für Lunch/Dinner' },
-  { item: 'Reiswaffeln', note: 'einfacher schneller Carb-Snack' },
-  { item: 'Bananen', note: 'rund um Training und morgens' },
-  { item: 'Magerquark / Skyr', note: 'Snack-Protein' },
-  { item: 'Hähnchen / Pute', note: 'mageres Protein für Lunch' },
-  { item: 'Kartoffeln', note: 'Abendessen und Entladetage' },
-  { item: 'TK-Beeren', note: 'für Frühstück und Quark' }
+  { item: 'Whey', note: 'fuer Fruehstueck, Snack und schnelle Makro-Luecken' },
+  { item: 'Reispudding / Cream of Rice', note: 'ideal fuer Ladetag und Workout-Carbs' },
+  { item: 'Haferflocken', note: 'Fruehstuecks-Basis aus dem Ernaehrungsplan' },
+  { item: 'Basmati- oder Jasminreis', note: 'Meal-Prep Hauptcarb' },
+  { item: 'Hähnchenbrust', note: 'Lunch-Basis' },
+  { item: 'Magerquark / Skyr', note: 'einfacher High-Protein Snack' },
+  { item: 'Süßkartoffeln / Kartoffeln', note: 'Dinner und Entladetage' },
+  { item: 'Bananen', note: 'schnelle Carbs fuer morgens und Training' },
+  { item: 'Brokkoli / Spinat', note: 'Gemuesebasis aus dem Plan' },
+  { item: 'Olivenöl, Leinsamen, Nuss-Mix', note: 'Fettquellen kontrolliert einsetzen' }
 ];
 
 const SUPPS = [
-  { name: 'Ashwagandha KSM-66', dose: '600mg', time: '06:30 nüchtern', tags: ['green:Stress', 'yellow:Recovery'], ev: 'Sinnvoll für Stressmanagement und Schlafqualität.' },
-  { name: 'Omega-3 (EPA/DHA)', dose: '2000mg', time: '07:00 mit Frühstück', tags: ['green:Entzündung', 'yellow:Recovery'], ev: 'Gute Basis für allgemeine Gesundheit und Entzündungsmanagement.' },
-  { name: 'Vitamin B-Komplex', dose: '1 Kapsel', time: '07:00 mit Frühstück', tags: ['green:Energie', 'gray:Basis'], ev: 'Solider Basis-Stack, besonders wenn die Ernährung wechselhaft ist.' },
-  { name: 'Vitamin C', dose: '500–1000mg', time: '07:00 mit Frühstück', tags: ['green:Antioxidans'], ev: 'Pragmatisch und gut verträglich in moderater Dosis.' },
-  { name: 'Zink + Vitamin A', dose: '25mg + 5000–10000 IU', time: '07:00 mit Frühstück', tags: ['yellow:Dosis im Blick'], ev: 'Vitamin A nicht höher fahren als nötig.' },
-  { name: 'Uridin Monophosphat', dose: '300mg', time: '10:30 mit Snack', tags: ['yellow:Fokus'], ev: 'Kann in einem Fokus-Stack sinnvoll sein.' },
-  { name: 'Citicolin', dose: '250mg', time: '10:30 mit Snack', tags: ['green:Kognition'], ev: 'Beliebte Ergänzung für Fokus und mentale Leistung.' },
-  { name: 'NAC', dose: '600mg', time: '13:00 mit Mahlzeit', tags: ['green:Antioxidans'], ev: 'Praktisch für antioxidativen Support.' },
-  { name: 'L-Tyrosin', dose: '1000mg', time: '30 Min vor Workout', tags: ['yellow:Pre-Workout'], ev: 'Optional vor harten Einheiten für Fokus.' },
-  { name: 'L-Theanin', dose: '200–250mg', time: 'mit Tyrosin oder Kaffee', tags: ['green:Fokus'], ev: 'Hilft, Fokus ruhiger zu halten.' },
-  { name: 'L-Glutamin', dose: '5g', time: '20:30 oder post workout', tags: ['green:Neu hinzugefügt', 'yellow:Darm/Recovery'], ev: 'Evidenz für Muskelaufbau begrenzt, aber als Darm- oder Routine-Supp okay.' },
-  { name: 'Magnesium Glycinat', dose: '350mg', time: '21:30 vor Schlaf', tags: ['green:Schlaf'], ev: 'Gut verträgliche Form für den Abend.' },
-  { name: 'Glycin', dose: '3g', time: '21:30 vor Schlaf', tags: ['green:Schlaf'], ev: 'Passt gut in eine Abendroutine.' }
+  { name: 'Ashwagandha KSM-66', dose: '600mg', time: '06:30 nüchtern', tags: ['gray:Stress', 'gray:Recovery'], ev: 'Sinnvoll fuer Stressmanagement und Schlafqualitaet.' },
+  { name: 'Omega-3 (EPA/DHA)', dose: '2000mg', time: '07:00 mit Frühstück', tags: ['gray:Entzuendung'], ev: 'Gute Basis fuer allgemeine Gesundheit und Entzuendungsmanagement.' },
+  { name: 'Vitamin B-Komplex', dose: '1 Kapsel', time: '07:00 mit Frühstück', tags: ['gray:Basis'], ev: 'Solider Basis-Stack fuer Energie und Routinen.' },
+  { name: 'Vitamin C', dose: '500-1000mg', time: '07:00 mit Frühstück', tags: ['gray:Antioxidans'], ev: 'Pragmatisch und gut vertraeglich.' },
+  { name: 'Zink + Vitamin A', dose: '25mg + 5000-10000 IU', time: '07:00 mit Frühstück', tags: ['gray:Dosis im Blick'], ev: 'Vitamin A nicht unnötig hoeher fahren.' },
+  { name: 'Uridin Monophosphat', dose: '300mg', time: '10:30 mit Snack', tags: ['gray:Fokus'], ev: 'Kann in einem Fokus-Stack sinnvoll sein.' },
+  { name: 'Citicolin', dose: '250mg', time: '10:30 mit Snack', tags: ['gray:Kognition'], ev: 'Beliebte Ergaenzung fuer mentale Leistung.' },
+  { name: 'NAC', dose: '600mg', time: '13:00 mit Mahlzeit', tags: ['gray:Antioxidans'], ev: 'Passt gut in die Mittagsroutine.' },
+  { name: 'L-Tyrosin', dose: '1000mg', time: '30 Min vor Workout', tags: ['gray:Pre Workout'], ev: 'Optional vor harten Einheiten.' },
+  { name: 'L-Theanin', dose: '200-250mg', time: 'mit Tyrosin oder Kaffee', tags: ['gray:Fokus'], ev: 'Hilft, Fokus ruhiger zu halten.' },
+  { name: 'L-Glutamin', dose: '5g', time: '20:30 oder post workout', tags: ['gray:Neu'], ev: 'Jetzt im Abendfenster mit aufgenommen.' },
+  { name: 'Magnesium Glycinat', dose: '350mg', time: '21:30 vor Schlaf', tags: ['gray:Schlaf'], ev: 'Gut vertraegliche Form fuer den Abend.' },
+  { name: 'Glycin', dose: '3g', time: '21:30 vor Schlaf', tags: ['gray:Schlaf'], ev: 'Passt gut direkt vor dem Schlaf.' }
 ];
 
 const NEW_SUPPS = [
-  { name: 'Elektrolyte', dose: '1 Portion', time: 'morgens oder intra workout', rec: 'EMPFOHLEN', tags: ['green:Hydration'], ev: 'Sinnvoll bei mehr Cardio und höherem Volumen.' },
-  { name: 'Kreatin Monohydrat', dose: '5g täglich', time: 'frei', rec: 'EMPFOHLEN', tags: ['green:Performance'], ev: 'Wenn noch nicht drin, klarer Pflichtkandidat.' },
-  { name: 'Taurin', dose: '1–2g', time: 'optional pre workout', rec: 'OPTIONAL', tags: ['orange:Optional'], ev: 'Kann drin sein, ist aber kein Muss.' }
+  { name: 'Kreatin Monohydrat', dose: '5g täglich', time: 'frei', rec: 'EMPFOHLEN', tags: ['gray:Performance'], ev: 'Wenn noch nicht drin, der klarste Zusatz fuer Kraft und Leistung.' },
+  { name: 'Elektrolyte', dose: '1 Portion', time: 'morgens oder intra workout', rec: 'EMPFOHLEN', tags: ['gray:Hydration'], ev: 'Sinnvoll bei mehr Cardio und hoeherem Volumen.' },
+  { name: 'Taurin', dose: '1-2g', time: 'optional pre workout', rec: 'OPTIONAL', tags: ['gray:Optional'], ev: 'Kann rein, ist aber kein Muss.' }
 ];
 
 function currentMode() {
   return S.nutritionMode || 'train';
 }
 
-function modeData() {
-  return NUTRITION_MODES[currentMode()];
+function hashString(value) {
+  let h = 0;
+  for (let i = 0; i < value.length; i += 1) h = (h * 31 + value.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function activePlan() {
+  const mode = currentMode();
+  const plans = PLAN_LIBRARY[mode];
+  const idx = hashString(`${todayKey}-${mode}`) % plans.length;
+  return plans[idx];
 }
 
 function buildCheckList(items, containerId) {
@@ -568,10 +694,9 @@ function toggleCheck(id) {
   const day = getDay(todayKey);
   day[id] = !day[id];
   setDay(todayKey, day);
-  const box = document.getElementById(`box-${id}`);
-  const lbl = document.getElementById(`lbl-${id}`);
-  if (box) box.className = `check-box${day[id] ? ' done' : ''}`;
-  if (lbl) lbl.className = `check-label${day[id] ? ' done' : ''}`;
+  buildCheckList(MORNING, 'list-morning');
+  buildCheckList(DAYTIME, 'list-day');
+  buildCheckList(EVENING, 'list-evening');
   updateMetrics();
 }
 
@@ -617,7 +742,6 @@ function updateWater() {
 
 function buildWeekGrid() {
   const grid = document.getElementById('week-grid');
-  if (!grid) return;
   grid.innerHTML = '';
   const today = new Date();
   const dayNames = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
@@ -640,18 +764,13 @@ function buildWeekGrid() {
 function buildExercises() {
   Object.entries(EXERCISES).forEach(([key, exs]) => {
     const el = document.getElementById(`ex-${key}`);
-    if (!el) return;
     el.innerHTML = exs.map(ex => `
       <div class="ex-row">
-        <div><div class="ex-name">${ex.name}</div><div style="font-size:10px;color:var(--text3)">${ex.note}</div></div>
+        <div><div class="ex-name">${ex.name}</div><div class="shop-note">${ex.note}</div></div>
         <div class="ex-sets">${ex.sets}</div>
         <div class="ex-kg">${ex.kg}</div>
       </div>`).join('');
   });
-}
-
-function cardioKey(index) {
-  return `cardio_${weekStamp()}_${index}`;
 }
 
 function weekStamp() {
@@ -661,12 +780,14 @@ function weekStamp() {
   return start.toISOString().slice(0, 10);
 }
 
+function cardioKey(index) {
+  return `cardio_${weekStamp()}_${index}`;
+}
+
 function buildCardioList() {
   const el = document.getElementById('cardio-list');
-  if (!el) return;
   el.innerHTML = [1, 2, 3].map(i => {
-    const key = cardioKey(i);
-    const done = !!S[key];
+    const done = !!S[cardioKey(i)];
     return `<div class="check-row">
       <div class="check-box${done ? ' done' : ''}" onclick="toggleCardio(${i})"></div>
       <div class="check-label${done ? ' done' : ''}" onclick="toggleCardio(${i})">Zone 2 Bike Session ${i}</div>
@@ -691,22 +812,21 @@ function saveTraining() {
   save();
   renderTrainingLog();
   document.getElementById('train-note').value = '';
-  showToast('Training gespeichert ✓');
+  showToast('Training gespeichert');
 }
 
 function renderTrainingLog() {
   const el = document.getElementById('training-log');
-  if (!el) return;
   const log = S.trainingLog || [];
   if (!log.length) {
-    el.innerHTML = '<div class="empty-state">Noch keine Einträge.</div>';
+    el.innerHTML = '<div class="subtle">Noch keine Einträge.</div>';
     return;
   }
   el.innerHTML = log.map(e => `
     <div class="log-item">
       <div>
         <div class="ex-name">${e.day}</div>
-        <div class="subtle">${e.date}${e.note ? ` · ${e.note}` : ''}${e.source === 'hevy' ? ' · Hevy Import' : ''}</div>
+        <div class="shop-note">${e.date}${e.note ? ` · ${e.note}` : ''}${e.source === 'hevy' ? ' · Hevy Import' : ''}</div>
       </div>
     </div>`).join('');
 }
@@ -714,42 +834,35 @@ function renderTrainingLog() {
 function setNutritionMode(mode) {
   S.nutritionMode = mode;
   save();
-  updateNutritionMode();
-  buildMealList();
-  renderMealSuggestions();
+  renderNutritionMode();
+  renderDailyPlan();
+  updateMacros();
 }
 
-function updateNutritionMode() {
-  const mode = modeData();
-  document.getElementById('mode-summary').textContent = `${mode.label}: ${mode.note}`;
-  document.getElementById('target-kcal').textContent = `${mode.kcal} kcal`;
-  document.getElementById('target-carb').textContent = `${mode.carbs} g`;
-  document.getElementById('target-fat').textContent = `${mode.fat} g`;
+function renderNutritionMode() {
+  const mode = currentMode();
+  Object.keys(NUTRITION_MODES).forEach(key => {
+    document.getElementById(`mode-${key}`).classList.toggle('active', key === mode);
+  });
+  const info = NUTRITION_MODES[mode];
+  const totals = activePlan().totals;
+  document.getElementById('mode-summary').textContent = `${info.label}: ${info.note}`;
+  document.getElementById('target-kcal').textContent = `${totals.kcal} kcal`;
+  document.getElementById('target-carb').textContent = `${totals.carbs} g`;
+  document.getElementById('target-fat').textContent = `${totals.fat} g`;
 }
 
-function buildMealList() {
-  const el = document.getElementById('meal-list');
-  if (!el) return;
-  const day = getDay(todayKey);
-  const meals = MEALS[currentMode()];
-  el.innerHTML = meals.map(m => {
-    const done = !!day[`meal_${m.id}`];
-    return `<div class="check-row">
-      <div class="check-box${done ? ' done' : ''}" onclick="toggleMeal('${m.id}')"></div>
-      <div class="check-label${done ? ' done' : ''}" onclick="toggleMeal('${m.id}')">
-        <strong style="font-family:var(--font-head)">${m.name}</strong> · ${m.time}<br>
-        <span style="font-size:11px;color:var(--text3)">${m.desc}</span>
+function renderDailyPlan() {
+  const plan = activePlan();
+  document.getElementById('daily-plan-title').textContent = `${plan.title} · zufällig für ${todayKey} ausgewählt`;
+  document.getElementById('daily-plan').innerHTML = plan.meals.map(meal => `
+    <div class="meal-plan">
+      <h3>${meal.title}</h3>
+      <div class="meal-meta">${meal.time} · ${meal.macros}</div>
+      <div class="meal-items">
+        ${meal.items.map(item => `<div><span>${item[0]}</span><span>${item[1]}</span></div>`).join('')}
       </div>
-      <div class="check-badge">${m.kcal} kcal<br>${m.p}P / ${m.k}C / ${m.f}F</div>
-    </div>`;
-  }).join('');
-}
-
-function toggleMeal(id) {
-  const day = getDay(todayKey);
-  day[`meal_${id}`] = !day[`meal_${id}`];
-  setDay(todayKey, day);
-  buildMealList();
+    </div>`).join('');
 }
 
 function saveMacros() {
@@ -760,61 +873,34 @@ function saveMacros() {
   setDay(todayKey, day);
   ['prot-in', 'carb-in', 'fat-in'].forEach(id => { document.getElementById(id).value = ''; });
   updateMacros();
-  showToast('Makros eingetragen ✓');
+  showToast('Makros eingetragen');
 }
 
 function updateMacros() {
   const day = getDay(todayKey);
+  const totals = activePlan().totals;
   const p = day.protein || 0;
   const k = day.carbs || 0;
   const f = day.fat || 0;
   const kcal = Math.round(p * 4 + k * 4 + f * 9);
-  const target = modeData();
-  document.getElementById('m-kcal').innerHTML = kcal ? `${kcal}<span class="metric-unit">kcal</span>` : '–';
-  document.getElementById('m-prot').innerHTML = `${p}<span class="metric-unit">g</span>`;
-  document.getElementById('m-carb').innerHTML = `${k}<span class="metric-unit">g</span>`;
-  document.getElementById('m-fat').innerHTML = `${f}<span class="metric-unit">g</span>`;
-  document.getElementById('macro-progress').textContent = `Protein ${p}/${target.protein}g · Carbs ${k}/${target.carbs}g · Fett ${f}/${target.fat}g`;
-  document.getElementById('prot-bar').style.width = `${Math.min(100, Math.round(p / target.protein * 100))}%`;
-}
-
-function renderMealSuggestions() {
-  const el = document.getElementById('meal-suggestions');
-  if (!el) return;
-  const mode = currentMode();
-  const meals = MEALS[mode];
-  const cards = [
-    { title: 'Frühstück', meta: `${meals[0].p}P / ${meals[0].k}C / ${meals[0].f}F`, items: FOOD_SUGGESTIONS.breakfast },
-    { title: 'Lunch / Dinner', meta: `${meals[2].p}P / ${meals[2].k}C / ${meals[2].f}F`, items: [...FOOD_SUGGESTIONS.lunch, ...FOOD_SUGGESTIONS.dinner] },
-    { title: 'Snacks / Workout', meta: `${meals[1].p}P / ${meals[1].k}C / ${meals[1].f}F`, items: FOOD_SUGGESTIONS.snacks }
-  ];
-  el.innerHTML = cards.map(card => `
-    <div class="meal-suggestion">
-      <h3>${card.title}</h3>
-      <div class="meal-meta">${card.meta} · ${NUTRITION_MODES[mode].label}</div>
-      <p>${card.items.join('<br>')}</p>
-    </div>`).join('');
+  document.getElementById('m-kcal').innerHTML = `${kcal}<span class="metric-unit"> / ${totals.kcal}</span>`;
+  document.getElementById('m-prot').innerHTML = `${p}<span class="metric-unit"> / ${totals.protein}g</span>`;
+  document.getElementById('m-carb').innerHTML = `${k}<span class="metric-unit"> / ${totals.carbs}g</span>`;
+  document.getElementById('m-fat').innerHTML = `${f}<span class="metric-unit"> / ${totals.fat}g</span>`;
+  document.getElementById('macro-progress').textContent = `Heute eingetragen: ${p}P / ${k}C / ${f}F · Ziel aus Tagesplan: ${totals.protein}P / ${totals.carbs}C / ${totals.fat}F`;
+  const score = ((p / totals.protein) + (k / totals.carbs) + (f / totals.fat)) / 3;
+  document.getElementById('macro-bar').style.width = `${Math.min(100, Math.round(score * 100))}%`;
 }
 
 function renderShoppingList() {
   const el = document.getElementById('shopping-list');
-  if (!el) return;
   el.innerHTML = SHOPPING_LIST.map(row => `
     <div class="shop-line">
       <div>
-        <div class="shop-item">${row.item}</div>
+        <div class="ex-name">${row.item}</div>
         <div class="shop-note">${row.note}</div>
       </div>
     </div>`).join('');
-}
-
-function buildSupplements() {
-  const el = document.getElementById('supp-list');
-  const el2 = document.getElementById('new-supp-list');
-  const sortedSupps = [...SUPPS].sort((a, b) => normalizeTime(a.time) - normalizeTime(b.time));
-  const sortedNew = [...NEW_SUPPS].sort((a, b) => normalizeTime(a.time) - normalizeTime(b.time));
-  if (el) el.innerHTML = sortedSupps.map(s => suppHtml(s, false)).join('');
-  if (el2) el2.innerHTML = sortedNew.map(s => suppHtml(s, true)).join('');
 }
 
 function normalizeTime(value) {
@@ -823,20 +909,23 @@ function normalizeTime(value) {
   return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
 }
 
+function buildSupplements() {
+  const el = document.getElementById('supp-list');
+  const el2 = document.getElementById('new-supp-list');
+  el.innerHTML = [...SUPPS].sort((a, b) => normalizeTime(a.time) - normalizeTime(b.time)).map(s => suppHtml(s, false)).join('');
+  el2.innerHTML = [...NEW_SUPPS].sort((a, b) => normalizeTime(a.time) - normalizeTime(b.time)).map(s => suppHtml(s, true)).join('');
+}
+
 function suppHtml(s, isNew) {
-  const tagHtml = s.tags.map(t => {
-    const [cls, lbl] = t.split(':');
-    const map = { green: 'tag-green', yellow: 'tag-yellow', orange: 'tag-orange', red: 'tag-red', gray: 'tag-gray' };
-    return `<span class="tag ${map[cls] || 'tag-gray'}">${lbl}</span>`;
-  }).join('');
-  const recBadge = isNew ? `<span class="tag ${s.rec === 'EMPFOHLEN' ? 'tag-green' : 'tag-orange'}">${s.rec}</span>` : '';
+  const rec = isNew ? `<span class="tag">${s.rec}</span>` : '';
+  const tags = s.tags.map(t => `<span class="tag">${t.split(':')[1]}</span>`).join('');
   return `<div class="supp-row">
     <div class="supp-head">
-      <div class="supp-name">${s.name} ${recBadge}</div>
+      <div class="supp-name">${s.name} ${rec}</div>
       <div class="supp-dose">${s.dose}</div>
     </div>
     <div class="supp-time">◷ ${s.time}</div>
-    <div>${tagHtml}</div>
+    <div>${tags}</div>
     <div class="supp-ev-toggle" onclick="toggleEv(this)">+ Notiz anzeigen</div>
     <div class="supp-ev">${s.ev}</div>
   </div>`;
@@ -850,10 +939,10 @@ function toggleEv(el) {
 }
 
 function switchTab(name) {
-  const TABS = { daily: 'sec-daily', training: 'sec-training', nutrition: 'sec-nutrition', food: 'sec-food', supps: 'sec-supps' };
-  Object.entries(TABS).forEach(([k, v]) => {
-    document.getElementById(v).classList.toggle('active', k === name);
-    document.getElementById(`nav-${k}`).classList.toggle('active', k === name);
+  const tabs = { daily: 'sec-daily', training: 'sec-training', nutrition: 'sec-nutrition', food: 'sec-food', supps: 'sec-supps' };
+  Object.entries(tabs).forEach(([key, value]) => {
+    document.getElementById(value).classList.toggle('active', key === name);
+    document.getElementById(`nav-${key}`).classList.toggle('active', key === name);
   });
   window.scrollTo(0, 0);
 }
@@ -863,18 +952,17 @@ function showToast(msg) {
   t.textContent = msg;
   Object.assign(t.style, {
     position: 'fixed',
-    bottom: '90px',
+    bottom: '92px',
     left: '50%',
     transform: 'translateX(-50%)',
-    background: 'var(--accent)',
-    color: '#0a0a0a',
+    background: 'linear-gradient(90deg, #c99dff, #8f5cff)',
+    color: '#120d1a',
     padding: '10px 20px',
-    borderRadius: '99px',
+    borderRadius: '999px',
     fontSize: '13px',
     fontFamily: 'var(--font-mono)',
-    fontWeight: '500',
-    zIndex: '999',
-    whiteSpace: 'nowrap'
+    fontWeight: '700',
+    zIndex: '999'
   });
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2200);
@@ -894,7 +982,7 @@ function importHevyFile(event) {
       save();
       renderTrainingLog();
       document.getElementById('hevy-status').textContent = `${parsed.length} Einträge aus ${file.name} importiert.`;
-      showToast('Hevy Import fertig ✓');
+      showToast('Hevy Import fertig');
     } catch (err) {
       document.getElementById('hevy-status').textContent = `Import aus ${file.name} konnte nicht gelesen werden.`;
     }
@@ -938,18 +1026,12 @@ function splitCsvLine(line) {
   for (let i = 0; i < line.length; i += 1) {
     const char = line[i];
     if (char === '"') {
-      if (inside && line[i + 1] === '"') {
-        current += '"';
-        i += 1;
-      } else {
-        inside = !inside;
-      }
+      if (inside && line[i + 1] === '"') { current += '"'; i += 1; }
+      else inside = !inside;
     } else if (char === ',' && !inside) {
       out.push(current);
       current = '';
-    } else {
-      current += char;
-    }
+    } else current += char;
   }
   out.push(current);
   return out;
@@ -959,7 +1041,14 @@ function findHeader(headers, options) {
   return headers.findIndex(h => options.includes(h));
 }
 
+function applyBackground() {
+  const bg = S.backgroundImage || '';
+  const photo = document.getElementById('bg-photo');
+  if (bg) photo.style.backgroundImage = `url("${bg}")`;
+}
+
 function init() {
+  applyBackground();
   updateDate();
   buildCheckList(MORNING, 'list-morning');
   buildCheckList(DAYTIME, 'list-day');
@@ -970,10 +1059,9 @@ function init() {
   buildExercises();
   buildCardioList();
   renderTrainingLog();
-  updateNutritionMode();
-  buildMealList();
+  renderNutritionMode();
+  renderDailyPlan();
   updateMacros();
-  renderMealSuggestions();
   renderShoppingList();
   buildSupplements();
 }
