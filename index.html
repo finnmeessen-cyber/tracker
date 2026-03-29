@@ -316,23 +316,22 @@ body::before {
     <div class="card">
       <div class="card-label">Cloud Sync</div>
       <div class="sync-grid">
-        <div class="input-row" style="flex-direction:column; align-items:stretch; gap:8px">
-          <input class="input-field" id="sync-url" placeholder="Supabase URL, z.B. https://xyz.supabase.co">
-          <input class="input-field" id="sync-key" placeholder="Supabase anon key">
-          <input class="input-field" id="sync-tracker-id" placeholder="Gemeinsame Tracker-ID fuer Mac und iPhone">
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-accent" onclick="saveSyncSettings()">Sync speichern</button>
-          <button class="btn" onclick="pullCloudState()">Cloud laden</button>
-          <button class="btn" onclick="pushCloudState('manual')">Jetzt synchronisieren</button>
-        </div>
-        <label class="subtle" style="display:flex; align-items:center; gap:8px">
-          <input type="checkbox" id="sync-auto" onchange="toggleAutoSync(this.checked)">
-          Auto-Sync nach Änderungen aktivieren
-        </label>
-        <div id="sync-status" class="sync-status">Noch nicht mit Supabase verbunden.</div>
-        <div class="subtle">SQL einmal in Supabase ausführen:</div>
-        <div class="sql-box">create table if not exists tracker_states (
+        <div id="sync-setup">
+          <div class="input-row" style="flex-direction:column; align-items:stretch; gap:8px">
+            <input class="input-field" id="sync-url" placeholder="Supabase URL, z.B. https://xyz.supabase.co">
+            <input class="input-field" id="sync-key" placeholder="Supabase anon key">
+            <input class="input-field" id="sync-tracker-id" placeholder="Gemeinsame Tracker-ID fuer Mac und iPhone">
+          </div>
+          <div class="btn-group" style="margin-top:10px">
+            <button class="btn btn-accent" id="btn-sync-save" onclick="saveSyncSettings()">Verbinden</button>
+            <button class="btn" id="btn-sync-pull-setup" onclick="pullCloudState()">Cloud laden</button>
+          </div>
+          <label class="subtle" style="display:flex; align-items:center; gap:8px; margin-top:10px">
+            <input type="checkbox" id="sync-auto" onchange="toggleAutoSync(this.checked)">
+            Auto-Sync nach Änderungen aktivieren
+          </label>
+          <div class="subtle" style="margin-top:10px">SQL einmal in Supabase ausführen:</div>
+          <div class="sql-box">create table if not exists tracker_states (
   tracker_id text primary key,
   payload jsonb not null,
   updated_at timestamptz not null default now(),
@@ -340,6 +339,15 @@ body::before {
 );
 
 alter table tracker_states disable row level security;</div>
+        </div>
+        <div id="sync-connected" style="display:none">
+          <div class="btn-group">
+            <button class="btn btn-accent" id="btn-sync-push" onclick="pushCloudState('manual')">Jetzt synchronisieren</button>
+            <button class="btn" id="btn-sync-pull" onclick="pullCloudState()">Cloud laden</button>
+            <button class="btn" onclick="showSyncSettings()">Einstellungen</button>
+          </div>
+        </div>
+        <div id="sync-status" class="sync-status">Noch nicht mit Supabase verbunden.</div>
       </div>
     </div>
     <div class="card"><div class="card-label">Morgenroutine</div><div id="list-morning"></div></div>
@@ -1030,20 +1038,64 @@ function populateSyncUI() {
   if (keyEl) keyEl.value = cfg.anonKey || '';
   if (idEl) idEl.value = cfg.trackerId || '';
   if (autoEl) autoEl.checked = !!cfg.autoSync;
+  renderSyncCard();
 }
 
-function saveSyncSettings() {
+function renderSyncCard() {
+  const cfg = getSyncConfig();
+  const setup = document.getElementById('sync-setup');
+  const connected = document.getElementById('sync-connected');
+  const isConnected = !!cfg.connected;
+  if (setup) setup.style.display = isConnected ? 'none' : 'block';
+  if (connected) connected.style.display = isConnected ? 'block' : 'none';
+}
+
+function setSyncBusy(isBusy) {
+  ['btn-sync-save', 'btn-sync-pull-setup', 'btn-sync-push', 'btn-sync-pull'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = isBusy;
+  });
+}
+
+function showSyncSettings() {
+  S.syncConfig = { ...getSyncConfig(), connected: false };
+  save();
+  renderSyncCard();
+  setSyncStatus('Sync-Einstellungen geöffnet.');
+}
+
+async function testSyncConnection() {
+  const cfg = getSyncConfig();
+  const client = initSupabaseClient();
+  if (!client || !cfg.trackerId) throw new Error('Bitte URL, anon key und Tracker-ID eintragen.');
+  const { error } = await client.from(SYNC_TABLE).select('tracker_id').limit(1);
+  if (error) throw error;
+}
+
+async function saveSyncSettings() {
   S.syncConfig = {
     url: (document.getElementById('sync-url').value || '').trim(),
     anonKey: (document.getElementById('sync-key').value || '').trim(),
     trackerId: (document.getElementById('sync-tracker-id').value || '').trim(),
-    autoSync: !!document.getElementById('sync-auto').checked
+    autoSync: !!document.getElementById('sync-auto').checked,
+    connected: false
   };
   supabaseClient = null;
   save();
-  initSupabaseClient();
-  setSyncStatus(S.syncConfig.url && S.syncConfig.trackerId ? 'Sync-Einstellungen gespeichert. Bereit zum Synchronisieren.' : 'Bitte URL, anon key und Tracker-ID eintragen.');
-  showToast('Sync gespeichert');
+  setSyncBusy(true);
+  setSyncStatus('Prüfe Verbindung zu Supabase ...');
+  try {
+    await testSyncConnection();
+    S.syncConfig = { ...getSyncConfig(), connected: true };
+    save();
+    renderSyncCard();
+    setSyncStatus('Supabase verbunden. Das Setup-Feld wurde ausgeblendet.');
+    showToast('Sync verbunden');
+  } catch (error) {
+    setSyncStatus(`Verbindung fehlgeschlagen: ${error.message}`);
+  } finally {
+    setSyncBusy(false);
+  }
 }
 
 function toggleAutoSync(checked) {
@@ -1093,18 +1145,25 @@ async function pushCloudState(reason = 'manual') {
     setSyncStatus('Sync noch nicht verbunden. Bitte Supabase URL, anon key und Tracker-ID eintragen.');
     return;
   }
+  setSyncBusy(true);
   setSyncStatus('Synchronisiere in die Cloud ...');
-  const { error } = await client.from(SYNC_TABLE).upsert({
-    tracker_id: cfg.trackerId,
-    payload: exportSyncState(),
-    updated_at: new Date().toISOString(),
-    device_id: navigator.userAgent
-  });
-  if (error) {
+  try {
+    const { error } = await client.from(SYNC_TABLE).upsert({
+      tracker_id: cfg.trackerId,
+      payload: exportSyncState(),
+      updated_at: new Date().toISOString(),
+      device_id: navigator.userAgent
+    });
+    if (error) throw error;
+    S.syncConfig = { ...cfg, connected: true };
+    save();
+    renderSyncCard();
+    setSyncStatus(`Cloud Sync erfolgreich (${reason === 'auto' ? 'auto' : 'manuell'}).`);
+  } catch (error) {
     setSyncStatus(`Sync-Fehler: ${error.message}`);
-    return;
+  } finally {
+    setSyncBusy(false);
   }
-  setSyncStatus(`Cloud Sync erfolgreich (${reason === 'auto' ? 'auto' : 'manuell'}).`);
 }
 
 async function pullCloudState() {
@@ -1114,19 +1173,25 @@ async function pullCloudState() {
     setSyncStatus('Cloud laden nicht möglich. Bitte zuerst Sync konfigurieren.');
     return;
   }
+  setSyncBusy(true);
   setSyncStatus('Lade Daten aus der Cloud ...');
-  const { data, error } = await client.from(SYNC_TABLE).select('payload,updated_at').eq('tracker_id', cfg.trackerId).limit(1);
-  if (error) {
+  try {
+    const { data, error } = await client.from(SYNC_TABLE).select('payload,updated_at').eq('tracker_id', cfg.trackerId).limit(1);
+    if (error) throw error;
+    if (!data || !data.length || !data[0].payload) {
+      setSyncStatus('Noch kein Cloud-Stand gefunden. Erst einmal synchronisieren.');
+      return;
+    }
+    S.syncConfig = { ...cfg, connected: true };
+    applySyncedState(data[0].payload);
+    renderSyncCard();
+    setSyncStatus(`Cloud-Stand geladen (${String(data[0].updated_at || '').slice(0, 16).replace('T', ' ')}).`);
+    showToast('Cloud geladen');
+  } catch (error) {
     setSyncStatus(`Cloud-Ladefehler: ${error.message}`);
-    return;
+  } finally {
+    setSyncBusy(false);
   }
-  if (!data || !data.length || !data[0].payload) {
-    setSyncStatus('Noch kein Cloud-Stand gefunden. Erst einmal synchronisieren.');
-    return;
-  }
-  applySyncedState(data[0].payload);
-  setSyncStatus(`Cloud-Stand geladen (${String(data[0].updated_at || '').slice(0, 16).replace('T', ' ')}).`);
-  showToast('Cloud geladen');
 }
 
 function buildSupplements() {
