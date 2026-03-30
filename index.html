@@ -91,6 +91,38 @@ body::before {
   background-clip: text;
   color: transparent;
 }
+.topbar-menu { position: relative; }
+.topbar-trigger { cursor: pointer; user-select: none; }
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  width: min(280px, 80vw);
+  background: rgba(18, 15, 24, 0.98);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.32);
+  display: none;
+}
+.dropdown-menu.open { display: block; }
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid transparent;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+.menu-item:last-child { margin-bottom: 0; }
+.menu-item small { display: block; color: var(--text3); font-size: 10px; margin-top: 3px; }
 .topbar-date { font-size: 11px; color: var(--text3); }
 .bottomnav {
   position: fixed;
@@ -149,6 +181,10 @@ body::before {
 .metric-sub { font-size: 10px; color: var(--text3); margin-top: 6px; }
 .check-row, .supp-row, .shop-line, .log-item { padding: 11px 0; border-bottom: 1px solid var(--border); }
 .check-row:last-child, .supp-row:last-child, .shop-line:last-child, .log-item:last-child { border-bottom: none; }
+.live-item { padding: 11px 0; border-bottom: 1px solid var(--border); }
+.live-item:last-child { border-bottom: none; }
+.live-title { font-size: 13px; color: var(--text); }
+.live-meta { font-size: 11px; color: var(--text3); margin-top: 4px; }
 .check-row { display: flex; align-items: center; gap: 12px; }
 .check-box {
   width: 20px;
@@ -206,6 +242,7 @@ body::before {
   text-decoration: none;
 }
 .btn:hover { background: var(--surface3); }
+.btn:active, .check-box:active, .nav-item:active { transform: scale(0.97); }
 .btn-accent {
   background: linear-gradient(90deg, rgba(179,124,255,0.92), rgba(143,92,255,0.92));
   border-color: rgba(213,156,255,0.38);
@@ -292,10 +329,49 @@ body::before {
 .graph-dot { fill: var(--accent2); }
 .graph-label { fill: var(--text3); font-size: 10px; font-family: var(--font-mono); }
 .graph-empty { padding: 24px 0; text-align: center; color: var(--text3); font-size: 12px; }
+.todo-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.todo-row:last-child { border-bottom: none; }
+.todo-text { flex: 1; font-size: 13px; line-height: 1.45; }
+.todo-text.done { color: var(--text3); text-decoration: line-through; }
+.circle-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.circle-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; text-align: center; }
+.circle-ring {
+  width: 82px;
+  height: 82px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(var(--accent2) calc(var(--pct, 0) * 1%), rgba(255,255,255,0.06) 0);
+}
+.circle-inner {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-head);
+  font-size: 16px;
+}
+.weekly-days { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+.day-pill {
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text2);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.day-pill.active { background: linear-gradient(90deg, #c99dff 0%, #8f5cff 100%); color: #120d1a; border-color: transparent; }
+.sleep-card { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+.micro-note { font-size: 11px; color: var(--text3); margin-top: 6px; }
 .fade-in { animation: fadeIn 0.2s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @media (max-width: 640px) {
-  .split-two, .triple-grid, .metric-grid { grid-template-columns: 1fr; }
+  .split-two, .triple-grid, .metric-grid, .circle-grid { grid-template-columns: 1fr; }
   .week-grid { grid-template-columns: repeat(7, minmax(0,1fr)); }
   .sync-status { min-height: 0; font-size: 11px; }
 }
@@ -306,21 +382,108 @@ body::before {
 <div class="bg-overlay"></div>
 
 <div class="topbar">
-  <div class="topbar-title">tracker</div>
+  <div class="topbar-menu">
+    <div class="topbar-title topbar-trigger" onclick="toggleMenu()">tracker</div>
+    <div class="dropdown-menu" id="tracker-menu">
+      <button class="menu-item" onclick="switchTab('dashboard'); toggleMenu(false)">
+        <span><strong>Dashboard</strong><small>Tages-Todos, Wasser, Schlaf, Schritte</small></span>
+      </button>
+      <button class="menu-item" onclick="switchTab('import'); toggleMenu(false)">
+        <span><strong>Hevy Import</strong><small>CSV anhängen und Training aktualisieren</small></span>
+      </button>
+      <button class="menu-item" onclick="switchTab('sync'); toggleMenu(false)">
+        <span><strong>Cloud Sync</strong><small>Supabase Verbindung und Geräte-Sync</small></span>
+      </button>
+    </div>
+  </div>
   <div class="topbar-date" id="topbar-date"></div>
 </div>
 
 <div class="content">
-  <div id="sec-daily" class="section active fade-in">
+  <div id="sec-dashboard" class="section fade-in">
     <div class="sec-header">
-      <h2>Tagescheck</h2>
-      <p id="daily-subtitle">Lade...</p>
+      <h2>Dashboard</h2>
+      <p>Tages-Todos, Wasser, Schlaf und Schritte an einem Ort.</p>
     </div>
-    <div class="metric-grid">
-      <div class="metric-card"><div class="metric-lbl">Heute</div><div class="metric-val" id="m-today">0<span class="metric-unit">%</span></div></div>
-      <div class="metric-card"><div class="metric-lbl">Supplements</div><div class="metric-val" id="m-supp">0<span class="metric-unit">%</span></div></div>
-      <div class="metric-card"><div class="metric-lbl">Wasser</div><div class="metric-val" id="m-water">0<span class="metric-unit">ml</span></div></div>
-      <div class="metric-card"><div class="metric-lbl">Streak</div><div class="metric-val" id="m-streak">0<span class="metric-unit">d</span></div></div>
+    <div class="card">
+      <div class="card-label">Dashboard</div>
+      <div class="subtle" style="margin-bottom:10px">Tages-Todos fuer alle Geräte via Cloud-Sync. Direkter Apple Erinnerungen/Kalender- oder ChatGPT-Zugriff ist in dieser lokalen HTML nicht nativ, dafür wäre später ein eigener Connector nötig.</div>
+      <div class="input-row" style="align-items:stretch">
+        <input class="input-field" id="todo-input" placeholder="Neues Todo fuer heute">
+        <button class="btn btn-accent" style="min-width:46px" onclick="addTodo()">+</button>
+      </div>
+      <div class="input-row" style="align-items:stretch; margin-top:8px">
+        <input class="input-field" id="todo-ai-input" placeholder="z.B. Heute noch 20 Min Cardio und Meal Prep">
+        <button class="btn" onclick="addTodoFromPrompt()">Aus Text</button>
+      </div>
+      <div id="todo-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Wasser-Tracker</div>
+      <div id="water-label" class="subtle">0 / 3000 ml</div>
+      <div class="prog-wrap"><div class="prog-bar" id="water-bar" style="width:0%"></div></div>
+      <div class="btn-group">
+        <button class="btn" onclick="addWater(250)">+250ml</button>
+        <button class="btn" onclick="addWater(500)">+500ml</button>
+        <button class="btn" onclick="addWater(-250)">-250ml</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Schlaf & Schritte</div>
+      <div class="sleep-card">
+        <div>
+          <div class="subtle">Schlafdauer letzte Nacht</div>
+          <div class="micro-note">Whoop kann später als Datenquelle ergänzt werden.</div>
+        </div>
+        <div class="btn-group">
+          <input class="input-field" id="sleep-in" type="number" min="0" max="24" step="0.1" placeholder="7.5" style="max-width:88px">
+          <button class="btn btn-accent" onclick="saveSleep()">Speichern</button>
+        </div>
+      </div>
+      <div class="sleep-card" style="margin-top:12px">
+        <div>
+          <div class="subtle">10k Steps</div>
+          <div class="micro-note" id="steps-label">0 / 10000 Schritte</div>
+        </div>
+        <div class="btn-group">
+          <button class="btn" onclick="addSteps(1000)">+1k</button>
+          <button class="btn" onclick="addSteps(2500)">+2.5k</button>
+          <button class="btn" onclick="addSteps(-1000)">-1k</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Live Reminders</div>
+      <div class="subtle" style="margin-bottom:10px">Zeigt offene Erinnerungen aus `reminders_live`, sobald ein Shortcut oder Connector sie nach Supabase schreibt.</div>
+      <div id="live-reminders"></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Live Kalender</div>
+      <div class="subtle" style="margin-bottom:10px">Zeigt kommende Events aus `calendar_live` in Echtzeit.</div>
+      <div id="live-calendar"></div>
+    </div>
+  </div>
+
+  <div id="sec-import" class="section fade-in">
+    <div class="sec-header">
+      <h2>Hevy Import</h2>
+      <p>CSV anhängen und dein Training direkt aktualisieren.</p>
+    </div>
+    <div class="card">
+      <div class="card-label">Hevy Import</div>
+      <div class="subtle" style="margin-bottom:10px">Nach dem Training einfach die neue Hevy-CSV auswählen. Übungen, Sätze, Wiederholungen und der Fortschrittsgraph werden damit direkt aktualisiert.</div>
+      <div class="btn-group">
+        <label class="btn btn-accent" for="hevy-file">Hevy Datei wählen</label>
+        <input id="hevy-file" type="file" accept=".csv,.json" style="display:none" onchange="importHevyFile(event)">
+      </div>
+      <div id="hevy-status" class="subtle">Noch kein Hevy-Import geladen.</div>
+    </div>
+  </div>
+
+  <div id="sec-sync" class="section fade-in">
+    <div class="sec-header">
+      <h2>Cloud Sync</h2>
+      <p>Supabase Verbindung und Geräte-Sync zentral verwalten.</p>
     </div>
     <div class="card">
       <div class="card-label">Cloud Sync</div>
@@ -347,7 +510,34 @@ body::before {
   device_id text
 );
 
-alter table tracker_states disable row level security;</div>
+alter table tracker_states disable row level security;
+
+do $$
+begin
+  alter publication supabase_realtime add table tracker_states;
+exception
+  when duplicate_object then null;
+end $$;</div>
+          <div class="subtle" style="margin-top:10px">Optional für echte Live-Daten aus Kalender, Reminders oder Health-Connectors:</div>
+          <div class="sql-box">create table if not exists reminders_live (
+  id uuid primary key default gen_random_uuid(),
+  tracker_id text not null,
+  title text not null,
+  due_at timestamptz,
+  completed boolean not null default false,
+  source text,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists calendar_live (
+  id uuid primary key default gen_random_uuid(),
+  tracker_id text not null,
+  title text not null,
+  starts_at timestamptz not null,
+  ends_at timestamptz,
+  source text,
+  updated_at timestamptz not null default now()
+);</div>
         </div>
         <div id="sync-connected" style="display:none">
           <div class="btn-group">
@@ -359,35 +549,28 @@ alter table tracker_states disable row level security;</div>
         <div id="sync-status" class="sync-status">Noch nicht mit Supabase verbunden.</div>
       </div>
     </div>
+  </div>
+
+  <div id="sec-daily" class="section active fade-in">
+    <div class="sec-header">
+      <h2>Tagescheck</h2>
+      <p id="daily-subtitle">Lade...</p>
+    </div>
+    <div class="metric-grid">
+      <div class="metric-card"><div class="metric-lbl">Heute</div><div class="metric-val" id="m-today">0<span class="metric-unit">%</span></div></div>
+      <div class="metric-card"><div class="metric-lbl">Supplements</div><div class="metric-val" id="m-supp">0<span class="metric-unit">%</span></div></div>
+      <div class="metric-card"><div class="metric-lbl">Wasser</div><div class="metric-val" id="m-water">0<span class="metric-unit">ml</span></div></div>
+      <div class="metric-card"><div class="metric-lbl">Streak</div><div class="metric-val" id="m-streak">0<span class="metric-unit">d</span></div></div>
+    </div>
     <div class="card"><div class="card-label">Morgenroutine</div><div id="list-morning"></div></div>
     <div class="card"><div class="card-label">Tagsüber</div><div id="list-day"></div></div>
     <div class="card"><div class="card-label">Abend</div><div id="list-evening"></div></div>
-    <div class="card">
-      <div class="card-label">Wasser-Tracker</div>
-      <div id="water-label" class="subtle">0 / 3000 ml</div>
-      <div class="prog-wrap"><div class="prog-bar" id="water-bar" style="width:0%"></div></div>
-      <div class="btn-group">
-        <button class="btn" onclick="addWater(250)">+250ml</button>
-        <button class="btn" onclick="addWater(500)">+500ml</button>
-        <button class="btn" onclick="addWater(-250)">-250ml</button>
-      </div>
-    </div>
-    <div class="card"><div class="card-label">Diese Woche</div><div id="week-grid" class="week-grid"></div></div>
   </div>
 
   <div id="sec-training" class="section fade-in">
     <div class="sec-header">
       <h2>Training</h2>
       <p>CSV anhängen, automatisch aktualisieren und Progress verfolgen.</p>
-    </div>
-    <div class="card">
-      <div class="card-label">Hevy Import</div>
-      <div class="subtle" style="margin-bottom:10px">Nach dem Training einfach die neue Hevy-CSV auswählen. Übungen, Sätze, Wiederholungen und der Fortschrittsgraph werden damit direkt aktualisiert.</div>
-      <div class="btn-group">
-        <label class="btn btn-accent" for="hevy-file">Hevy Datei wählen</label>
-        <input id="hevy-file" type="file" accept=".csv,.json" style="display:none" onchange="importHevyFile(event)">
-      </div>
-      <div id="hevy-status" class="subtle">Noch kein Hevy-Import geladen.</div>
     </div>
     <div class="card"><div class="card-label">Cardio</div><div class="subtle" style="margin-bottom:10px">Ziel: 3 Sessions pro Woche, je 20 Minuten Zone 2 auf dem Fahrrad.</div><div id="cardio-list"></div></div>
     <div class="split-two">
@@ -465,18 +648,28 @@ alter table tracker_states disable row level security;</div>
   <div id="sec-food" class="section fade-in">
     <div class="sec-header">
       <h2>Food</h2>
-      <p>Einkaufsliste und schnelle Preischecks.</p>
+      <p>Mengenangaben und Aktionen pro Mahlzeit.</p>
     </div>
+    <div class="card"><div class="card-label">Tages-Mahlzeiten</div><div id="food-meals"></div></div>
     <div class="card"><div class="card-label">Einkaufsliste</div><div id="shopping-list"></div></div>
+  </div>
+
+  <div id="sec-weekly" class="section fade-in">
+    <div class="sec-header">
+      <h2>Monat</h2>
+      <p>Monatsansicht mit Tagesauswahl für Makros, Training und Supps.</p>
+    </div>
+    <div class="card"><div class="card-label">Monate</div><div id="monthly-months" class="weekly-days"></div></div>
+    <div class="card"><div class="card-label">Tage im Monat</div><div id="weekly-days" class="weekly-days"></div></div>
     <div class="card">
-      <div class="card-label">Angebote & Preisvergleich</div>
-      <div class="subtle">Live-Angebote lassen sich in dieser lokalen Datei nicht automatisch ziehen. Die Buttons öffnen direkte Suchanfragen für Whey und Reispudding.</div>
-      <div class="btn-group" style="margin-top:10px">
-        <a class="btn" target="_blank" href="https://www.idealo.de/preisvergleich/MainSearchProductCategory.html?q=whey+protein">Whey bei Idealo</a>
-        <a class="btn" target="_blank" href="https://www.idealo.de/preisvergleich/MainSearchProductCategory.html?q=reispudding">Reispudding bei Idealo</a>
-        <a class="btn" target="_blank" href="https://www.google.com/search?q=whey+angebot">Whey Angebote</a>
-        <a class="btn" target="_blank" href="https://www.google.com/search?q=reispudding+angebot">Reispudding Angebote</a>
+      <div class="card-label">Übersicht</div>
+      <div class="circle-grid">
+        <div class="circle-card"><div class="circle-ring" id="ring-macros" style="--pct:0"><div class="circle-inner" id="weekly-macros">0%</div></div><div class="subtle">Makros</div></div>
+        <div class="circle-card"><div class="circle-ring" id="ring-training" style="--pct:0"><div class="circle-inner" id="weekly-training">0%</div></div><div class="subtle">Training</div></div>
+        <div class="circle-card"><div class="circle-ring" id="ring-supps" style="--pct:0"><div class="circle-inner" id="weekly-supps">0%</div></div><div class="subtle">Supps</div></div>
       </div>
+      <div id="weekly-summary" class="subtle" style="margin-top:12px"></div>
+      <div id="weekly-sleep" class="micro-note"></div>
     </div>
   </div>
 
@@ -494,6 +687,7 @@ alter table tracker_states disable row level security;</div>
   <button class="nav-item active" id="nav-daily" onclick="switchTab('daily')"><span class="nav-icon">◉</span>Heute</button>
   <button class="nav-item" id="nav-training" onclick="switchTab('training')"><span class="nav-icon">⊞</span>Training</button>
   <button class="nav-item" id="nav-nutrition" onclick="switchTab('nutrition')"><span class="nav-icon">◈</span>Makros</button>
+  <button class="nav-item" id="nav-weekly" onclick="switchTab('weekly')"><span class="nav-icon">◎</span>Monat</button>
   <button class="nav-item" id="nav-food" onclick="switchTab('food')"><span class="nav-icon">▣</span>Food</button>
   <button class="nav-item" id="nav-supps" onclick="switchTab('supps')"><span class="nav-icon">⬡</span>Supps</button>
 </nav>
@@ -501,14 +695,20 @@ alter table tracker_states disable row level security;</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SK = 'okcomputer_v4';
+const DEVICE_KEY = 'okcomputer_device_id_v1';
 const EXERCISE_TEMPLATE_VERSION = 'hevy-workout-data-2026-03-29';
 const SYNC_TABLE = 'tracker_states';
+const REMINDERS_TABLE = 'reminders_live';
+const CALENDAR_TABLE = 'calendar_live';
 let S = {};
 function load() { try { S = JSON.parse(localStorage.getItem(SK) || '{}'); } catch (e) { S = {}; } }
 let syncDebounce = null;
 let suppressAutoSync = false;
 let supabaseClient = null;
 let syncStatusTimer = null;
+let trackerRealtimeChannel = null;
+let externalRealtimeChannel = null;
+let lastRealtimeUpdateAt = '';
 
 function save() {
   try { localStorage.setItem(SK, JSON.stringify(S)); } catch (e) {}
@@ -519,6 +719,16 @@ load();
 const todayKey = new Date().toISOString().slice(0, 10);
 function getDay(k) { return S[k] || {}; }
 function setDay(k, v) { S[k] = v; save(); }
+
+function getDeviceId() {
+  let id = '';
+  try { id = localStorage.getItem(DEVICE_KEY) || ''; } catch (e) {}
+  if (!id) {
+    id = `device-${Math.random().toString(36).slice(2, 10)}-${Date.now().toString(36)}`;
+    try { localStorage.setItem(DEVICE_KEY, id); } catch (e) {}
+  }
+  return id;
+}
 
 const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 const months = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
@@ -543,6 +753,7 @@ const DAYTIME = [
   { id: 'nac', label: 'NAC 600mg', badge: '13:00' },
   { id: 'mahl4', label: 'Pre/Post Workout', badge: '16:30 · Makroplan' },
   { id: 'cardio', label: 'Zone 2 Bike 20 Min', badge: '3x pro Woche' },
+  { id: 'steps', label: '10k Steps', badge: 'Tagesziel' },
   { id: 'w2', label: 'Wasser 500ml', badge: '14:00' },
   { id: 'w3', label: 'Wasser 500ml', badge: '16:00' }
 ];
@@ -691,33 +902,33 @@ const PLAN_LIBRARY = {
 };
 
 const SHOPPING_LIST = [
-  { item: 'Whey', note: 'fuer Fruehstueck, Snack und schnelle Makro-Luecken' },
-  { item: 'Reispudding / Cream of Rice', note: 'ideal fuer Ladetag und Workout-Carbs' },
-  { item: 'Haferflocken', note: 'Fruehstuecks-Basis aus dem Ernaehrungsplan' },
-  { item: 'Basmati- oder Jasminreis', note: 'Meal-Prep Hauptcarb' },
-  { item: 'Hähnchenbrust', note: 'Lunch-Basis' },
-  { item: 'Magerquark / Skyr', note: 'einfacher High-Protein Snack' },
-  { item: 'Süßkartoffeln / Kartoffeln', note: 'Dinner und Entladetage' },
-  { item: 'Bananen', note: 'schnelle Carbs fuer morgens und Training' },
-  { item: 'Brokkoli / Spinat', note: 'Gemuesebasis aus dem Plan' },
-  { item: 'Olivenöl, Leinsamen, Nuss-Mix', note: 'Fettquellen kontrolliert einsetzen' }
+  { item: 'Whey', amount: '1 x 900g-2kg', note: 'fuer Fruehstueck, Snack und schnelle Makro-Luecken' },
+  { item: 'Reispudding / Cream of Rice', amount: '1 x 1kg', note: 'ideal fuer Ladetag und Workout-Carbs' },
+  { item: 'Haferflocken', amount: '1 x 1kg', note: 'Fruehstuecks-Basis aus dem Ernaehrungsplan' },
+  { item: 'Basmati- oder Jasminreis', amount: '2 x 1kg', note: 'Meal-Prep Hauptcarb' },
+  { item: 'Hähnchenbrust', amount: '1.5-2kg', note: 'Lunch-Basis' },
+  { item: 'Magerquark / Skyr', amount: '7 x 250g', note: 'einfacher High-Protein Snack' },
+  { item: 'Süßkartoffeln / Kartoffeln', amount: '2-3kg', note: 'Dinner und Entladetage' },
+  { item: 'Bananen', amount: '10-14 Stück', note: 'schnelle Carbs fuer morgens und Training' },
+  { item: 'Brokkoli / Spinat', amount: 'je 1kg', note: 'Gemuesebasis aus dem Plan' },
+  { item: 'Olivenöl, Leinsamen, Nuss-Mix', amount: '1 Flasche / 1 Beutel', note: 'Fettquellen kontrolliert einsetzen' }
 ];
 
 const SHOPPING_VARIANTS = [
   [
-    { item: 'Wraps', note: 'fuer schnelle Dinner-Variation' },
-    { item: 'Skyr', note: 'als Alternative zu Magerquark' },
-    { item: 'TK-Beeren extra', note: 'mehr Snack- und Frühstücksvariation' }
+    { item: 'Wraps', amount: '1 Packung', note: 'fuer schnelle Dinner-Variation' },
+    { item: 'Skyr', amount: '4 x 300g', note: 'als Alternative zu Magerquark' },
+    { item: 'TK-Beeren extra', amount: '750g-1kg', note: 'mehr Snack- und Frühstücksvariation' }
   ],
   [
-    { item: 'Vollkorntoast', note: 'Pre-Workout oder Frühstück' },
-    { item: 'Cornflakes / Rice Cereal', note: 'leichte Carbs rund ums Training' },
-    { item: 'Avocados', note: 'für kontrollierte Fett-Tage' }
+    { item: 'Vollkorntoast', amount: '1-2 Packungen', note: 'Pre-Workout oder Frühstück' },
+    { item: 'Cornflakes / Rice Cereal', amount: '1 Packung', note: 'leichte Carbs rund ums Training' },
+    { item: 'Avocados', amount: '3-4 Stück', note: 'für kontrollierte Fett-Tage' }
   ],
   [
-    { item: 'Putenbrust', note: 'Alternative zu Hähnchen für Lunch und Snack' },
-    { item: 'Kartoffeln extra', note: 'für Entladetag und Dinner-Variation' },
-    { item: 'Honig / Marmelade', note: 'schnelle Carbs an Trainings- und Ladetagen' }
+    { item: 'Putenbrust', amount: '800g-1kg', note: 'Alternative zu Hähnchen für Lunch und Snack' },
+    { item: 'Kartoffeln extra', amount: '2kg', note: 'für Entladetag und Dinner-Variation' },
+    { item: 'Honig / Marmelade', amount: '1 Glas', note: 'schnelle Carbs an Trainings- und Ladetagen' }
   ]
 ];
 
@@ -759,6 +970,10 @@ function activePlan() {
   return plans[idx];
 }
 
+function haptic(ms = 12) {
+  if (navigator.vibrate) navigator.vibrate(ms);
+}
+
 function getExerciseTemplates() {
   return S.exerciseTemplates || DEFAULT_EXERCISES;
 }
@@ -785,16 +1000,21 @@ function buildCheckList(items, containerId) {
 }
 
 function toggleCheck(id) {
+  haptic();
   const day = getDay(todayKey);
   day[id] = !day[id];
+  if (id === 'steps') day.steps = day[id] ? Math.max(day.steps || 0, 10000) : 0;
   setDay(todayKey, day);
   buildCheckList(MORNING, 'list-morning');
   buildCheckList(DAYTIME, 'list-day');
   buildCheckList(EVENING, 'list-evening');
   renderDailyPlan();
+  renderFoodMeals();
   buildSupplements();
   updateMetrics();
+  updateSteps();
   updateMacros();
+  renderWeeklyOverview();
 }
 
 function updateMetrics() {
@@ -823,6 +1043,7 @@ function updateMetrics() {
 }
 
 function addWater(ml) {
+  haptic(8);
   const day = getDay(todayKey);
   day.water = Math.max(0, (day.water || 0) + ml);
   setDay(todayKey, day);
@@ -837,8 +1058,92 @@ function updateWater() {
   document.getElementById('water-bar').style.width = `${pct}%`;
 }
 
+function addTodo() {
+  const input = document.getElementById('todo-input');
+  const text = (input.value || '').trim();
+  if (!text) return;
+  S.todos = S.todos || {};
+  S.todos[todayKey] = S.todos[todayKey] || [];
+  S.todos[todayKey].push({ id: Date.now(), text, done: false });
+  input.value = '';
+  save();
+  haptic();
+  buildTodoList();
+}
+
+function addTodoFromPrompt() {
+  const input = document.getElementById('todo-ai-input');
+  const text = (input.value || '').trim();
+  if (!text) return;
+  const parts = text.split(/,| und /).map(part => part.trim()).filter(Boolean);
+  S.todos = S.todos || {};
+  S.todos[todayKey] = S.todos[todayKey] || [];
+  parts.forEach(part => S.todos[todayKey].push({ id: Date.now() + Math.random(), text: part, done: false }));
+  input.value = '';
+  save();
+  haptic();
+  buildTodoList();
+}
+
+function buildTodoList() {
+  const el = document.getElementById('todo-list');
+  if (!el) return;
+  const todos = ((S.todos || {})[todayKey] || []);
+  if (!todos.length) {
+    el.innerHTML = '<div class="micro-note">Noch keine Tages-Todos.</div>';
+    return;
+  }
+  el.innerHTML = todos.map(todo => `
+    <div class="todo-row">
+      <div class="check-box${todo.done ? ' done' : ''}" onclick="toggleTodo(${JSON.stringify(todo.id)})"></div>
+      <div class="todo-text${todo.done ? ' done' : ''}" onclick="toggleTodo(${JSON.stringify(todo.id)})">${todo.text}</div>
+    </div>`).join('');
+}
+
+function toggleTodo(id) {
+  const todos = ((S.todos || {})[todayKey] || []);
+  const todo = todos.find(item => String(item.id) === String(id));
+  if (!todo) return;
+  todo.done = !todo.done;
+  save();
+  haptic();
+  buildTodoList();
+}
+
+function saveSleep() {
+  const input = document.getElementById('sleep-in');
+  const value = parseFloat(input.value || '0');
+  if (!value) return;
+  const day = getDay(todayKey);
+  day.sleepHours = value;
+  setDay(todayKey, day);
+  input.value = '';
+  haptic();
+  renderWeeklyOverview();
+  showToast('Schlaf gespeichert');
+}
+
+function addSteps(amount) {
+  const day = getDay(todayKey);
+  day.steps = Math.max(0, (day.steps || 0) + amount);
+  day['steps'] = day.steps >= 10000;
+  setDay(todayKey, day);
+  updateSteps();
+  buildCheckList(DAYTIME, 'list-day');
+  updateMetrics();
+  renderWeeklyOverview();
+  haptic(8);
+}
+
+function updateSteps() {
+  const steps = getDay(todayKey).steps || 0;
+  const el = document.getElementById('steps-label');
+  if (el) el.textContent = `${steps} / 10000 Schritte`;
+}
+
 function buildWeekGrid() {
   const grid = document.getElementById('week-grid');
+  if (!grid) return;
   grid.innerHTML = '';
   const today = new Date();
   const dayNames = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
@@ -899,17 +1204,21 @@ function buildCardioList() {
 }
 
 function toggleCardio(index) {
+  haptic();
   const key = cardioKey(index);
   S[key] = !S[key];
   save();
   buildCardioList();
+  renderWeeklyOverview();
 }
 
 function setNutritionMode(mode) {
+  haptic(8);
   S.nutritionMode = mode;
   save();
   renderNutritionMode();
   renderDailyPlan();
+  renderFoodMeals();
   updateMacros();
 }
 
@@ -956,6 +1265,7 @@ function togglePlanMeal(index) {
 }
 
 function saveMacros() {
+  haptic(10);
   const day = getDay(todayKey);
   day.protein = (day.protein || 0) + (parseInt(document.getElementById('prot-in').value, 10) || 0);
   day.carbs = (day.carbs || 0) + (parseInt(document.getElementById('carb-in').value, 10) || 0);
@@ -1010,6 +1320,130 @@ function mealCheckId(meal, index) {
   return `mahl${index + 1}`;
 }
 
+function renderFoodMeals() {
+  const el = document.getElementById('food-meals');
+  if (!el) return;
+  const plan = activePlan();
+  const day = getDay(todayKey);
+  el.innerHTML = plan.meals.map((meal, index) => {
+    const id = mealCheckId(meal, index);
+    const done = !!day[id];
+    return `<div class="meal-plan">
+      <div class="meal-head">
+        <div class="check-box${done ? ' done' : ''}" onclick="toggleCheck('${id}')"></div>
+        <div>
+          <h3 onclick="toggleCheck('${id}')">${meal.title}</h3>
+          <div class="meal-meta">${meal.time} · ${meal.macros}</div>
+        </div>
+      </div>
+      <div class="meal-items">${meal.items.map(item => `<div><span>${item[0]}</span><span>${item[1]}</span></div>`).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+function weeklySelectedKey() {
+  return S.weeklySelected || todayKey;
+}
+
+function monthlySelectedValue() {
+  return S.monthlySelected || todayKey.slice(0, 7);
+}
+
+function buildMonthlyMonths() {
+  const el = document.getElementById('monthly-months');
+  if (!el) return;
+  const base = new Date();
+  const items = [];
+  for (let i = 4; i >= 0; i -= 1) {
+    const d = new Date(base.getFullYear(), base.getMonth() - i, 1);
+    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    items.push({ value, label: `${months[d.getMonth()]} ${d.getFullYear()}` });
+  }
+  el.innerHTML = items.map(item => `<button class="day-pill${monthlySelectedValue() === item.value ? ' active' : ''}" onclick="selectMonthlyMonth('${item.value}')">${item.label}</button>`).join('');
+}
+
+function selectMonthlyMonth(value) {
+  S.monthlySelected = value;
+  const [year, month] = value.split('-').map(Number);
+  const selectedDate = new Date(weeklySelectedKey());
+  const selectedMatchesMonth = selectedDate.getFullYear() === year && (selectedDate.getMonth() + 1) === month;
+  if (!selectedMatchesMonth) {
+    const fallbackDay = value === todayKey.slice(0, 7) ? todayKey : `${value}-01`;
+    S.weeklySelected = fallbackDay;
+  }
+  save();
+  haptic(8);
+  renderWeeklyOverview();
+}
+
+function buildWeeklyDays() {
+  const el = document.getElementById('weekly-days');
+  if (!el) return;
+  const [year, month] = monthlySelectedValue().split('-').map(Number);
+  const lastDay = new Date(year, month, 0).getDate();
+  const items = [];
+  for (let dayNum = 1; dayNum <= lastDay; dayNum += 1) {
+    const d = new Date(year, month - 1, dayNum);
+    const key = d.toISOString().slice(0, 10);
+    items.push({ key, label: `${days[d.getDay()]} ${d.getDate()}` });
+  }
+  const selectedKey = weeklySelectedKey();
+  if (!items.some(item => item.key === selectedKey) && items.length) {
+    S.weeklySelected = monthlySelectedValue() === todayKey.slice(0, 7) ? todayKey : items[0].key;
+  }
+  el.innerHTML = items.map(item => `<button class="day-pill${weeklySelectedKey() === item.key ? ' active' : ''}" onclick="selectWeeklyDay('${item.key}')">${item.label}</button>`).join('');
+}
+
+function selectWeeklyDay(key) {
+  S.weeklySelected = key;
+  save();
+  haptic(8);
+  renderWeeklyOverview();
+}
+
+function renderWeeklyOverview() {
+  buildMonthlyMonths();
+  buildWeeklyDays();
+  const key = weeklySelectedKey();
+  const day = getDay(key);
+  const plan = activePlan();
+  const planned = plan.meals.reduce((acc, meal, index) => {
+    const id = mealCheckId(meal, index);
+    if (!day[id]) return acc;
+    const parsed = parseMacroString(meal.macros);
+    acc.protein += parsed.protein;
+    acc.carbs += parsed.carbs;
+    acc.fat += parsed.fat;
+    return acc;
+  }, { protein: 0, carbs: 0, fat: 0 });
+  const macrosPct = Math.min(100, Math.round((((planned.protein + (day.protein || 0)) / plan.totals.protein) + ((planned.carbs + (day.carbs || 0)) / plan.totals.carbs) + ((planned.fat + (day.fat || 0)) / plan.totals.fat)) / 3 * 100));
+  const trainingPct = day._trained ? 100 : day.cardio ? 55 : 0;
+  const suppPct = Math.round((SUPP_IDS.filter(id => day[id]).length / SUPP_IDS.length) * 100);
+  document.getElementById('ring-macros').style.setProperty('--pct', macrosPct);
+  document.getElementById('ring-training').style.setProperty('--pct', trainingPct);
+  document.getElementById('ring-supps').style.setProperty('--pct', suppPct);
+  document.getElementById('weekly-macros').textContent = `${macrosPct}%`;
+  document.getElementById('weekly-training').textContent = `${trainingPct}%`;
+  document.getElementById('weekly-supps').textContent = `${suppPct}%`;
+  document.getElementById('weekly-summary').textContent = `${key}: ${planned.protein + (day.protein || 0)}P / ${planned.carbs + (day.carbs || 0)}C / ${planned.fat + (day.fat || 0)}F · ${(day.steps || 0)} Schritte`;
+  const sleepAvg = monthSleepAverage();
+  document.getElementById('weekly-sleep').textContent = sleepAvg ? `Monatlicher Schlafschnitt: ${sleepAvg.toFixed(1)}h` : 'Noch keine Schlafdaten in diesem Monat.';
+}
+
+function monthSleepAverage() {
+  const [year, month] = monthlySelectedValue().split('-').map(Number);
+  const lastDay = new Date(year, month, 0).getDate();
+  let total = 0;
+  let count = 0;
+  for (let dayNum = 1; dayNum <= lastDay; dayNum += 1) {
+    const d = new Date(year, month - 1, dayNum);
+    const key = d.toISOString().slice(0, 10);
+    const val = getDay(key).sleepHours;
+    if (val) { total += val; count += 1; }
+  }
+  return count ? total / count : 0;
+}
+
 function renderShoppingList() {
   const el = document.getElementById('shopping-list');
   const variant = SHOPPING_VARIANTS[hashString(weekStamp()) % SHOPPING_VARIANTS.length];
@@ -1018,7 +1452,7 @@ function renderShoppingList() {
     <div class="shop-line">
       <div>
         <div class="ex-name">${row.item}</div>
-        <div class="shop-note">${row.note}</div>
+        <div class="shop-note">${row.amount ? `${row.amount} · ` : ''}${row.note}</div>
       </div>
     </div>`).join('');
 }
@@ -1031,6 +1465,25 @@ function normalizeTime(value) {
 
 function getSyncConfig() {
   return S.syncConfig || { url: '', anonKey: '', trackerId: '', autoSync: false };
+}
+
+function toggleMenu(force) {
+  const el = document.getElementById('tracker-menu');
+  if (!el) return;
+  const next = typeof force === 'boolean' ? force : !el.classList.contains('open');
+  el.classList.toggle('open', next);
+}
+
+function toggleSyncFromMenu() {
+  toggleMenu(false);
+  switchTab('sync');
+  const cfg = getSyncConfig();
+  if (cfg.connected) {
+    showSyncSettings();
+  } else {
+    const setup = document.getElementById('sync-setup');
+    if (setup) setup.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 }
 
 function setSyncStatus(text) {
@@ -1085,9 +1538,108 @@ function persistSyncConfig(syncConfig) {
 }
 
 function showSyncSettings() {
+  resetRealtimeSubscription();
   persistSyncConfig({ ...getSyncConfig(), connected: false });
   renderSyncCard();
   setSyncStatus('Sync-Einstellungen geöffnet.');
+}
+
+function resetRealtimeSubscription() {
+  const client = supabaseClient;
+  if (client && trackerRealtimeChannel) {
+    try { client.removeChannel(trackerRealtimeChannel); } catch (e) {}
+  }
+  if (client && externalRealtimeChannel) {
+    try { client.removeChannel(externalRealtimeChannel); } catch (e) {}
+  }
+  trackerRealtimeChannel = null;
+  externalRealtimeChannel = null;
+}
+
+function subscribeTrackerRealtime() {
+  const cfg = getSyncConfig();
+  const client = initSupabaseClient();
+  if (!client || !cfg.connected || !cfg.trackerId) return;
+  if (trackerRealtimeChannel) {
+    try { client.removeChannel(trackerRealtimeChannel); } catch (e) {}
+    trackerRealtimeChannel = null;
+  }
+  trackerRealtimeChannel = client
+    .channel(`tracker-live-${cfg.trackerId}`)
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: SYNC_TABLE,
+      filter: `tracker_id=eq.${cfg.trackerId}`
+    }, payload => {
+      const row = payload && payload.new ? payload.new : null;
+      if (!row || !row.payload) return;
+      if (row.device_id && row.device_id === getDeviceId()) return;
+      if (row.updated_at && lastRealtimeUpdateAt && row.updated_at <= lastRealtimeUpdateAt) return;
+      lastRealtimeUpdateAt = row.updated_at || new Date().toISOString();
+      persistSyncConfig({ ...getSyncConfig(), connected: true });
+      applySyncedState(row.payload);
+      setSyncStatus('Live-Sync empfangen.');
+    })
+    .subscribe(status => {
+      if (status === 'SUBSCRIBED') {
+        setSyncStatus('Live-Sync verbunden.');
+      }
+    });
+}
+
+async function fetchExternalLiveData() {
+  const cfg = getSyncConfig();
+  const client = initSupabaseClient();
+  if (!client || !cfg.connected || !cfg.trackerId) {
+    S.liveReminders = [];
+    S.liveCalendar = [];
+    renderExternalLiveData();
+    return;
+  }
+  try {
+    const [{ data: reminders }, { data: calendar }] = await Promise.all([
+      client.from(REMINDERS_TABLE).select('*').eq('tracker_id', cfg.trackerId).order('due_at', { ascending: true }).limit(12),
+      client.from(CALENDAR_TABLE).select('*').eq('tracker_id', cfg.trackerId).order('starts_at', { ascending: true }).limit(12)
+    ]);
+    S.liveReminders = Array.isArray(reminders) ? reminders : [];
+    S.liveCalendar = Array.isArray(calendar) ? calendar : [];
+  } catch (e) {
+    S.liveReminders = [];
+    S.liveCalendar = [];
+  }
+  renderExternalLiveData();
+}
+
+function subscribeExternalRealtime() {
+  const cfg = getSyncConfig();
+  const client = initSupabaseClient();
+  if (!client || !cfg.connected || !cfg.trackerId) return;
+  if (externalRealtimeChannel) {
+    try { client.removeChannel(externalRealtimeChannel); } catch (e) {}
+    externalRealtimeChannel = null;
+  }
+  externalRealtimeChannel = client
+    .channel(`external-live-${cfg.trackerId}`)
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: REMINDERS_TABLE,
+      filter: `tracker_id=eq.${cfg.trackerId}`
+    }, () => {
+      fetchExternalLiveData();
+      setSyncStatus('Live-Reminder aktualisiert.');
+    })
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: CALENDAR_TABLE,
+      filter: `tracker_id=eq.${cfg.trackerId}`
+    }, () => {
+      fetchExternalLiveData();
+      setSyncStatus('Live-Kalender aktualisiert.');
+    })
+    .subscribe();
 }
 
 async function testSyncConnection() {
@@ -1114,10 +1666,14 @@ async function saveSyncSettings() {
     await testSyncConnection();
     persistSyncConfig({ ...nextConfig, connected: true });
     renderSyncCard();
-    setSyncStatus('Supabase verbunden. Das Setup-Feld wurde ausgeblendet.');
+    subscribeTrackerRealtime();
+    fetchExternalLiveData();
+    subscribeExternalRealtime();
+    setSyncStatus('Supabase verbunden. Live-Sync ist aktiv.');
     showToast('Sync verbunden');
   } catch (error) {
     persistSyncConfig({ ...nextConfig, connected: false });
+    resetRealtimeSubscription();
     renderSyncCard();
     setSyncStatus(`Verbindung fehlgeschlagen: ${error.message}`);
   } finally {
@@ -1175,14 +1731,19 @@ async function pushCloudState(reason = 'manual') {
   setSyncBusy(true);
   setSyncStatus('Synchronisiere in die Cloud ...');
   try {
+    const updatedAt = new Date().toISOString();
     const { error } = await client.from(SYNC_TABLE).upsert({
       tracker_id: cfg.trackerId,
       payload: exportSyncState(),
-      updated_at: new Date().toISOString(),
-      device_id: navigator.userAgent
+      updated_at: updatedAt,
+      device_id: getDeviceId()
     });
     if (error) throw error;
+    lastRealtimeUpdateAt = updatedAt;
     persistSyncConfig({ ...cfg, connected: true });
+    subscribeTrackerRealtime();
+    fetchExternalLiveData();
+    subscribeExternalRealtime();
     setSyncStatus(`Cloud Sync erfolgreich (${reason === 'auto' ? 'auto' : 'manuell'}).`);
   } catch (error) {
     setSyncStatus(`Sync-Fehler: ${error.message}`);
@@ -1207,8 +1768,12 @@ async function pullCloudState() {
       setSyncStatus('Noch kein Cloud-Stand gefunden. Erst einmal synchronisieren.');
       return;
     }
+    lastRealtimeUpdateAt = data[0].updated_at || lastRealtimeUpdateAt;
     persistSyncConfig({ ...cfg, connected: true });
     applySyncedState(data[0].payload);
+    subscribeTrackerRealtime();
+    fetchExternalLiveData();
+    subscribeExternalRealtime();
     setSyncStatus(`Cloud-Stand geladen (${String(data[0].updated_at || '').slice(0, 16).replace('T', ' ')}).`);
     showToast('Cloud geladen');
   } catch (error) {
@@ -1223,6 +1788,34 @@ function buildSupplements() {
   const el2 = document.getElementById('new-supp-list');
   el.innerHTML = [...SUPPS].sort((a, b) => normalizeTime(a.time) - normalizeTime(b.time)).map(s => suppHtml(s, false)).join('');
   el2.innerHTML = [...NEW_SUPPS].sort((a, b) => normalizeTime(a.time) - normalizeTime(b.time)).map(s => suppHtml(s, true)).join('');
+}
+
+function formatLiveDate(value) {
+  if (!value) return 'Ohne Datum';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return `${days[d.getDay()]} ${d.getDate()}. ${months[d.getMonth()]} · ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function renderExternalLiveData() {
+  const remindersEl = document.getElementById('live-reminders');
+  const calendarEl = document.getElementById('live-calendar');
+  if (remindersEl) {
+    const rows = (S.liveReminders || []).filter(item => !item.completed);
+    remindersEl.innerHTML = rows.length ? rows.map(item => `
+      <div class="live-item">
+        <div class="live-title">${item.title || 'Reminder'}</div>
+        <div class="live-meta">${formatLiveDate(item.due_at)}${item.source ? ` · ${item.source}` : ''}</div>
+      </div>`).join('') : '<div class="subtle">Noch keine Live-Reminder vorhanden.</div>';
+  }
+  if (calendarEl) {
+    const rows = (S.liveCalendar || []).slice(0, 8);
+    calendarEl.innerHTML = rows.length ? rows.map(item => `
+      <div class="live-item">
+        <div class="live-title">${item.title || 'Event'}</div>
+        <div class="live-meta">${formatLiveDate(item.starts_at)}${item.ends_at ? ` bis ${String(new Date(item.ends_at).getHours()).padStart(2, '0')}:${String(new Date(item.ends_at).getMinutes()).padStart(2, '0')}` : ''}${item.source ? ` · ${item.source}` : ''}</div>
+      </div>`).join('') : '<div class="subtle">Noch keine Live-Kalenderdaten vorhanden.</div>';
+  }
 }
 
 function suppHtml(s, isNew) {
@@ -1253,11 +1846,24 @@ function toggleEv(el) {
 }
 
 function switchTab(name) {
-  const tabs = { daily: 'sec-daily', training: 'sec-training', nutrition: 'sec-nutrition', food: 'sec-food', supps: 'sec-supps' };
+  haptic(8);
+  const tabs = {
+    dashboard: 'sec-dashboard',
+    import: 'sec-import',
+    sync: 'sec-sync',
+    daily: 'sec-daily',
+    training: 'sec-training',
+    nutrition: 'sec-nutrition',
+    weekly: 'sec-weekly',
+    food: 'sec-food',
+    supps: 'sec-supps'
+  };
   Object.entries(tabs).forEach(([key, value]) => {
     document.getElementById(value).classList.toggle('active', key === name);
-    document.getElementById(`nav-${key}`).classList.toggle('active', key === name);
+    const nav = document.getElementById(`nav-${key}`);
+    if (nav) nav.classList.toggle('active', key === name);
   });
+  toggleMenu(false);
   window.scrollTo(0, 0);
 }
 
@@ -1293,6 +1899,12 @@ function importHevyFile(event) {
       S.trainingLog = S.trainingLog || [];
       parsed.logs.slice(0, 8).reverse().forEach(entry => S.trainingLog.unshift(entry));
       S.trainingLog = S.trainingLog.slice(0, 40);
+      parsed.logs.forEach(entry => {
+        const key = normalizeSessionDate(entry.date || todayKey) || todayKey;
+        const day = getDay(key);
+        day._trained = true;
+        setDay(key, day);
+      });
       S.hevySessions = mergeSessions(S.hevySessions, parsed.sessions || []);
       if (parsed.templates && Object.keys(parsed.templates).length) {
         S.exerciseTemplates = parsed.templates;
@@ -1582,21 +2194,27 @@ function ensureExerciseSeed() {
 function refreshUI() {
   applyBackground();
   populateSyncUI();
+  renderSyncCard();
   updateDate();
+  buildTodoList();
   buildCheckList(MORNING, 'list-morning');
   buildCheckList(DAYTIME, 'list-day');
   buildCheckList(EVENING, 'list-evening');
   updateMetrics();
   updateWater();
+  updateSteps();
   buildWeekGrid();
   buildExercises();
   buildCardioList();
   renderProgressGraph();
   renderNutritionMode();
   renderDailyPlan();
+  renderFoodMeals();
   updateMacros();
   renderShoppingList();
+  renderWeeklyOverview();
   buildSupplements();
+  renderExternalLiveData();
 }
 
 function init() {
@@ -1606,6 +2224,11 @@ function init() {
   const cfg = getSyncConfig();
   if (cfg.url && cfg.trackerId) {
     setSyncStatus(cfg.autoSync ? 'Sync bereit. Auto-Sync aktiv.' : 'Sync bereit. Manuell oder per Cloud laden.');
+  }
+  if (cfg.connected && cfg.url && cfg.trackerId) {
+    subscribeTrackerRealtime();
+    fetchExternalLiveData();
+    subscribeExternalRealtime();
   }
 }
 
