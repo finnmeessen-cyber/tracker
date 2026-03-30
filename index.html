@@ -419,20 +419,6 @@ body::before {
       <div id="todo-list"></div>
     </div>
     <div class="card">
-      <div class="card-label">Schritte</div>
-      <div class="sleep-card">
-        <div>
-          <div class="subtle">10k Steps</div>
-          <div class="micro-note" id="steps-label">0 / 10000 Schritte</div>
-        </div>
-        <div class="btn-group">
-          <button class="btn" onclick="addSteps(1000)">+1k</button>
-          <button class="btn" onclick="addSteps(2500)">+2.5k</button>
-          <button class="btn" onclick="addSteps(-1000)">-1k</button>
-        </div>
-      </div>
-    </div>
-    <div class="card">
       <div class="card-label">Live Reminders</div>
       <div class="subtle" style="margin-bottom:10px">Zeigt offene Erinnerungen aus `reminders_live`, sobald ein Shortcut oder Connector sie nach Supabase schreibt.</div>
       <div id="live-reminders"></div>
@@ -553,6 +539,20 @@ create table if not exists calendar_live (
       <p>CSV anhängen, automatisch aktualisieren und Progress verfolgen.</p>
     </div>
     <div class="card"><div class="card-label">Cardio</div><div class="subtle" style="margin-bottom:10px">Ziel: 3 Sessions pro Woche, je 20 Minuten Zone 2 auf dem Fahrrad.</div><div id="cardio-list"></div></div>
+    <div class="card">
+      <div class="card-label">Schritte</div>
+      <div class="sleep-card">
+        <div>
+          <div class="subtle">10k Steps</div>
+          <div class="micro-note" id="steps-label">0 / 10000 Schritte</div>
+        </div>
+        <div class="btn-group">
+          <button class="btn" onclick="addSteps(1000)">+1k</button>
+          <button class="btn" onclick="addSteps(2500)">+2.5k</button>
+          <button class="btn" onclick="addSteps(-1000)">-1k</button>
+        </div>
+      </div>
+    </div>
     <div class="split-two">
       <div class="card"><div class="card-label" id="label-push-a">Push A</div><div id="ex-push-a"></div></div>
       <div class="card"><div class="card-label" id="label-pull-a">Pull A</div><div id="ex-pull-a"></div></div>
