@@ -403,7 +403,7 @@ body::before {
   <div id="sec-dashboard" class="section fade-in">
     <div class="sec-header">
       <h2>Dashboard</h2>
-      <p>Tages-Todos, Wasser, Schlaf und Schritte an einem Ort.</p>
+      <p>Tages-Todos, Schritte und Live-Daten an einem Ort.</p>
     </div>
     <div class="card">
       <div class="card-label">Dashboard</div>
@@ -419,28 +419,8 @@ body::before {
       <div id="todo-list"></div>
     </div>
     <div class="card">
-      <div class="card-label">Wasser-Tracker</div>
-      <div id="water-label" class="subtle">0 / 3000 ml</div>
-      <div class="prog-wrap"><div class="prog-bar" id="water-bar" style="width:0%"></div></div>
-      <div class="btn-group">
-        <button class="btn" onclick="addWater(250)">+250ml</button>
-        <button class="btn" onclick="addWater(500)">+500ml</button>
-        <button class="btn" onclick="addWater(-250)">-250ml</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-label">Schlaf & Schritte</div>
+      <div class="card-label">Schritte</div>
       <div class="sleep-card">
-        <div>
-          <div class="subtle">Schlafdauer letzte Nacht</div>
-          <div class="micro-note">Whoop kann später als Datenquelle ergänzt werden.</div>
-        </div>
-        <div class="btn-group">
-          <input class="input-field" id="sleep-in" type="number" min="0" max="24" step="0.1" placeholder="7.5" style="max-width:88px">
-          <button class="btn btn-accent" onclick="saveSleep()">Speichern</button>
-        </div>
-      </div>
-      <div class="sleep-card" style="margin-top:12px">
         <div>
           <div class="subtle">10k Steps</div>
           <div class="micro-note" id="steps-label">0 / 10000 Schritte</div>
@@ -636,6 +616,16 @@ create table if not exists calendar_live (
       <div class="prog-wrap"><div class="prog-bar" id="macro-bar" style="width:0%"></div></div>
     </div>
     <div class="card">
+      <div class="card-label">Wasser-Tracker</div>
+      <div id="water-label" class="subtle">0 / 3000 ml</div>
+      <div class="prog-wrap"><div class="prog-bar" id="water-bar" style="width:0%"></div></div>
+      <div class="btn-group">
+        <button class="btn" onclick="addWater(250)">+250ml</button>
+        <button class="btn" onclick="addWater(500)">+500ml</button>
+        <button class="btn" onclick="addWater(-250)">-250ml</button>
+      </div>
+    </div>
+    <div class="card">
       <div class="card-label">Makros manuell ergänzen</div>
       <div class="input-row"><span class="input-lbl">Protein (g)</span><input type="number" class="input-field" id="prot-in" min="0" placeholder="0" style="max-width:120px"></div>
       <div class="input-row"><span class="input-lbl">Carbs (g)</span><input type="number" class="input-field" id="carb-in" min="0" placeholder="0" style="max-width:120px"></div>
@@ -669,7 +659,6 @@ create table if not exists calendar_live (
         <div class="circle-card"><div class="circle-ring" id="ring-supps" style="--pct:0"><div class="circle-inner" id="weekly-supps">0%</div></div><div class="subtle">Supps</div></div>
       </div>
       <div id="weekly-summary" class="subtle" style="margin-top:12px"></div>
-      <div id="weekly-sleep" class="micro-note"></div>
     </div>
   </div>
 
@@ -761,8 +750,7 @@ const EVENING = [
   { id: 'mahl3', label: 'Abendessen', badge: '18:30 · Makroplan' },
   { id: 'glutamin', label: 'L-Glutamin', badge: '20:30 · 5g' },
   { id: 'mag', label: 'Magnesium Glycinat 350mg', badge: '21:30' },
-  { id: 'glycin', label: 'Glycin 3g', badge: '21:30' },
-  { id: 'sleep', label: 'Schlaf >=7h', badge: '22:00 Ziel' }
+  { id: 'glycin', label: 'Glycin 3g', badge: '21:30' }
 ];
 const SUPP_IDS = ['ash', 'omega', 'vit', 'zinkva', 'uridin', 'citicolin', 'nac', 'glutamin', 'mag', 'glycin'];
 
@@ -1110,19 +1098,6 @@ function toggleTodo(id) {
   buildTodoList();
 }
 
-function saveSleep() {
-  const input = document.getElementById('sleep-in');
-  const value = parseFloat(input.value || '0');
-  if (!value) return;
-  const day = getDay(todayKey);
-  day.sleepHours = value;
-  setDay(todayKey, day);
-  input.value = '';
-  haptic();
-  renderWeeklyOverview();
-  showToast('Schlaf gespeichert');
-}
-
 function addSteps(amount) {
   const day = getDay(todayKey);
   day.steps = Math.max(0, (day.steps || 0) + amount);
@@ -1426,22 +1401,6 @@ function renderWeeklyOverview() {
   document.getElementById('weekly-training').textContent = `${trainingPct}%`;
   document.getElementById('weekly-supps').textContent = `${suppPct}%`;
   document.getElementById('weekly-summary').textContent = `${key}: ${planned.protein + (day.protein || 0)}P / ${planned.carbs + (day.carbs || 0)}C / ${planned.fat + (day.fat || 0)}F · ${(day.steps || 0)} Schritte`;
-  const sleepAvg = monthSleepAverage();
-  document.getElementById('weekly-sleep').textContent = sleepAvg ? `Monatlicher Schlafschnitt: ${sleepAvg.toFixed(1)}h` : 'Noch keine Schlafdaten in diesem Monat.';
-}
-
-function monthSleepAverage() {
-  const [year, month] = monthlySelectedValue().split('-').map(Number);
-  const lastDay = new Date(year, month, 0).getDate();
-  let total = 0;
-  let count = 0;
-  for (let dayNum = 1; dayNum <= lastDay; dayNum += 1) {
-    const d = new Date(year, month - 1, dayNum);
-    const key = d.toISOString().slice(0, 10);
-    const val = getDay(key).sleepHours;
-    if (val) { total += val; count += 1; }
-  }
-  return count ? total / count : 0;
 }
 
 function renderShoppingList() {
