@@ -503,6 +503,16 @@ create table if not exists calendar_live (
   ends_at timestamptz,
   source text,
   updated_at timestamptz not null default now()
+);
+
+create table if not exists health_live (
+  id uuid primary key default gen_random_uuid(),
+  tracker_id text not null,
+  metric text not null,
+  value numeric not null,
+  recorded_on date not null,
+  source text,
+  updated_at timestamptz not null default now()
 );</div>
         </div>
         <div id="sync-connected" style="display:none">
@@ -689,6 +699,7 @@ const EXERCISE_TEMPLATE_VERSION = 'hevy-workout-data-2026-03-29';
 const SYNC_TABLE = 'tracker_states';
 const REMINDERS_TABLE = 'reminders_live';
 const CALENDAR_TABLE = 'calendar_live';
+const HEALTH_TABLE = 'health_live';
 let S = {};
 function load() { try { S = JSON.parse(localStorage.getItem(SK) || '{}'); } catch (e) { S = {}; } }
 let syncDebounce = null;
@@ -1553,20 +1564,25 @@ async function fetchExternalLiveData() {
   if (!client || !cfg.connected || !cfg.trackerId) {
     S.liveReminders = [];
     S.liveCalendar = [];
+    S.liveHealth = [];
     renderExternalLiveData();
     return;
   }
   try {
-    const [{ data: reminders }, { data: calendar }] = await Promise.all([
+    const [{ data: reminders }, { data: calendar }, { data: health }] = await Promise.all([
       client.from(REMINDERS_TABLE).select('*').eq('tracker_id', cfg.trackerId).order('due_at', { ascending: true }).limit(12),
-      client.from(CALENDAR_TABLE).select('*').eq('tracker_id', cfg.trackerId).order('starts_at', { ascending: true }).limit(12)
+      client.from(CALENDAR_TABLE).select('*').eq('tracker_id', cfg.trackerId).order('starts_at', { ascending: true }).limit(12),
+      client.from(HEALTH_TABLE).select('*').eq('tracker_id', cfg.trackerId).order('recorded_on', { ascending: false }).limit(20)
     ]);
     S.liveReminders = Array.isArray(reminders) ? reminders : [];
     S.liveCalendar = Array.isArray(calendar) ? calendar : [];
+    S.liveHealth = Array.isArray(health) ? health : [];
   } catch (e) {
     S.liveReminders = [];
     S.liveCalendar = [];
+    S.liveHealth = [];
   }
+  syncStepsFromHealth();
   renderExternalLiveData();
 }
 
@@ -1597,6 +1613,15 @@ function subscribeExternalRealtime() {
     }, () => {
       fetchExternalLiveData();
       setSyncStatus('Live-Kalender aktualisiert.');
+    })
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: HEALTH_TABLE,
+      filter: `tracker_id=eq.${cfg.trackerId}`
+    }, () => {
+      fetchExternalLiveData();
+      setSyncStatus('Health-Daten aktualisiert.');
     })
     .subscribe();
 }
@@ -1760,7 +1785,7 @@ function renderExternalLiveData() {
   const remindersEl = document.getElementById('live-reminders');
   const calendarEl = document.getElementById('live-calendar');
   if (remindersEl) {
-    const rows = (S.liveReminders || []).filter(item => !item.completed);
+    const rows = (S.liveReminders || []).filter(item => !item.completed).slice(0, 3);
     remindersEl.innerHTML = rows.length ? rows.map(item => `
       <div class="live-item">
         <div class="live-title">${item.title || 'Reminder'}</div>
@@ -1775,6 +1800,24 @@ function renderExternalLiveData() {
         <div class="live-meta">${formatLiveDate(item.starts_at)}${item.ends_at ? ` bis ${String(new Date(item.ends_at).getHours()).padStart(2, '0')}:${String(new Date(item.ends_at).getMinutes()).padStart(2, '0')}` : ''}${item.source ? ` · ${item.source}` : ''}</div>
       </div>`).join('') : '<div class="subtle">Noch keine Live-Kalenderdaten vorhanden.</div>';
   }
+}
+
+function syncStepsFromHealth() {
+  const todayHealth = (S.liveHealth || []).find(item => item.metric === 'steps' && item.recorded_on === todayKey);
+  if (!todayHealth) return;
+  const nextSteps = Math.max(0, Math.round(Number(todayHealth.value) || 0));
+  const day = getDay(todayKey);
+  if ((day.steps || 0) === nextSteps) return;
+  day.steps = nextSteps;
+  day['steps'] = nextSteps >= 10000;
+  suppressAutoSync = true;
+  S[todayKey] = day;
+  try { localStorage.setItem(SK, JSON.stringify(S)); } catch (e) {}
+  suppressAutoSync = false;
+  updateSteps();
+  buildCheckList(DAYTIME, 'list-day');
+  updateMetrics();
+  renderWeeklyOverview();
 }
 
 function suppHtml(s, isNew) {
